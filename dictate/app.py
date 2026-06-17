@@ -1,77 +1,46 @@
-"""Application wiring: fn key -> record -> transcribe -> inject at cursor.
+"""Terminal front-end: run dictation with live status printed to the console.
 
-The hotkey callbacks stay featherweight so the event-tap thread never stalls:
-key-down just starts the mic, key-up grabs the buffer and hands transcription to
-a background worker. A single-worker queue serializes transcription + injection
-so rapid consecutive takes land in the right order.
+Thin wrapper over DictationEngine — it just renders engine states as console
+lines and drives the fn-key tap on its own run loop. For the background menu-bar
+version see ``dictate.menu_app``.
 """
 
 from __future__ import annotations
 
 import sys
-import time
-from concurrent.futures import ThreadPoolExecutor
+from typing import Optional
 
-import numpy as np
-
-from .audio import Recorder
 from .config import CONFIG
-from .feedback import Feedback
+from .core import DictationEngine
 from .hotkey import FnHotkey
-from .injector import inject
-from .transcriber import Transcriber
+
+_CLEAR = "\r" + " " * 60 + "\r"
+
+
+def _render(state: str, info: Optional[dict]) -> None:
+    info = info or {}
+    if state == "listening":
+        print("\r🎙️  listening…", end="", flush=True)
+    elif state == "transcribing":
+        print(f"\r⏳ transcribing {info.get('duration', 0):0.1f}s…", end="", flush=True)
+    elif state == "result":
+        speed = info["duration"] / info["elapsed"] if info["elapsed"] > 0 else 0.0
+        print(f"{_CLEAR}✅ {info['elapsed']:0.2f}s ({speed:0.1f}× realtime)  “{info['text']}”", flush=True)
+    elif state == "empty":
+        print(f"{_CLEAR}🤷 (nothing recognized)", flush=True)
+    elif state == "error":
+        print(f"{_CLEAR}❌ {info.get('error', 'transcription failed')}", flush=True)
 
 
 class DictationApp:
     def __init__(self) -> None:
-        self.recorder = Recorder()
-        self.transcriber = Transcriber()
-        self.feedback = Feedback()
-        # One worker = transcriptions run off the event-tap thread but stay ordered.
-        self._pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="dictate-stt")
-        self._hotkey = FnHotkey(self._on_press, self._on_release)
+        self.engine = DictationEngine(on_state=_render)
+        self._hotkey = FnHotkey(self.engine.on_press, self.engine.on_release)
 
-    # -- hotkey callbacks (run on the event-tap thread; keep them fast) ------
-    def _on_press(self) -> None:
-        self.recorder.start()
-        self.feedback.listening()
-        print("\r🎙️  listening…", end="", flush=True)
-
-    def _on_release(self) -> None:
-        audio, duration = self.recorder.stop()
-        if duration < CONFIG.min_record_seconds or audio.size == 0:
-            print("\r                         \r", end="", flush=True)
-            return
-        print(f"\r⏳ transcribing {duration:0.1f}s…", end="", flush=True)
-        self._pool.submit(self._process, audio, duration)
-
-    # -- worker thread -------------------------------------------------------
-    def _process(self, audio: np.ndarray, duration: float) -> None:
-        t0 = time.monotonic()
-        try:
-            text = self.transcriber.transcribe(audio)
-        except Exception as exc:
-            self.feedback.error()
-            print(f"\r❌ transcription failed: {exc}", flush=True)
-            return
-
-        elapsed = time.monotonic() - t0
-        if not text:
-            self.feedback.error()
-            print(f"\r🤷 (nothing recognized)   ", flush=True)
-            return
-
-        inject(text)
-        self.feedback.done()
-        speed = duration / elapsed if elapsed > 0 else 0.0
-        print(f"\r✅ {elapsed:0.2f}s ({speed:0.1f}× realtime)  “{text}”", flush=True)
-
-    # -- lifecycle -----------------------------------------------------------
     def run(self) -> None:
         print(f"Loading model: {CONFIG.model}", flush=True)
-        t0 = time.monotonic()
-        self.transcriber.warmup()
-        print(f"Model ready in {time.monotonic() - t0:0.1f}s.\n", flush=True)
+        elapsed = self.engine.warmup()
+        print(f"Model ready in {elapsed:0.1f}s.\n", flush=True)
         print(
             "┌──────────────────────────────────────────────┐\n"
             "│  Hold  fn (🌐)  and speak. Release to insert.  │\n"
@@ -87,9 +56,8 @@ class DictationApp:
             self.shutdown()
 
     def shutdown(self) -> None:
-        print("\nShutting down…")
-        self._pool.shutdown(wait=True)
-        self.recorder.close()
+        print("\nShutting down…", flush=True)
+        self.engine.shutdown()
 
 
 def main() -> int:

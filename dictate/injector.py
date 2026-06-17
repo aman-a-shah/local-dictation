@@ -18,17 +18,30 @@ from AppKit import NSPasteboard, NSPasteboardTypeString
 from .config import CONFIG
 
 _V_KEYCODE = 9  # kVK_ANSI_V
+_CMD_KEYCODE = 55  # kVK_Command
 _CMD_FLAG = Quartz.kCGEventFlagMaskCommand
+_TAP = Quartz.kCGHIDEventTap
 
 
 def _post_cmd_v() -> None:
+    # Emit a full, explicit chord: Command down, V down, V up, Command up — each
+    # carrying the Command flag. Some apps ignore a bare flag set on the V event
+    # alone, so we also synthesize the real Command key events around it.
     src = Quartz.CGEventSourceCreate(Quartz.kCGEventSourceStateHIDSystemState)
-    down = Quartz.CGEventCreateKeyboardEvent(src, _V_KEYCODE, True)
-    Quartz.CGEventSetFlags(down, _CMD_FLAG)
-    up = Quartz.CGEventCreateKeyboardEvent(src, _V_KEYCODE, False)
-    Quartz.CGEventSetFlags(up, _CMD_FLAG)
-    Quartz.CGEventPost(Quartz.kCGHIDEventTap, down)
-    Quartz.CGEventPost(Quartz.kCGHIDEventTap, up)
+
+    cmd_down = Quartz.CGEventCreateKeyboardEvent(src, _CMD_KEYCODE, True)
+    Quartz.CGEventSetFlags(cmd_down, _CMD_FLAG)
+
+    v_down = Quartz.CGEventCreateKeyboardEvent(src, _V_KEYCODE, True)
+    Quartz.CGEventSetFlags(v_down, _CMD_FLAG)
+
+    v_up = Quartz.CGEventCreateKeyboardEvent(src, _V_KEYCODE, False)
+    Quartz.CGEventSetFlags(v_up, _CMD_FLAG)
+
+    cmd_up = Quartz.CGEventCreateKeyboardEvent(src, _CMD_KEYCODE, False)
+
+    for event in (cmd_down, v_down, v_up, cmd_up):
+        Quartz.CGEventPost(_TAP, event)
 
 
 def _paste(text: str) -> None:
@@ -37,13 +50,13 @@ def _paste(text: str) -> None:
 
     pb.clearContents()
     pb.setString_forType_(text, NSPasteboardTypeString)
-    # Tiny settle so the pasteboard write is visible to the target app.
-    time.sleep(0.02)
+    # Settle so the pasteboard write is visible to the target app before ⌘V.
+    time.sleep(0.05)
     _post_cmd_v()
 
     if CONFIG.restore_clipboard:
         def _restore() -> None:
-            time.sleep(0.25)  # let the paste consume our text first
+            time.sleep(0.5)  # let the paste consume our text first
             cur = pb.stringForType_(NSPasteboardTypeString)
             # Only restore if we still own the clipboard (don't clobber a copy
             # the user made in the meantime).

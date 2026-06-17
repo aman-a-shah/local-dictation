@@ -10,18 +10,39 @@ of speech lands almost instantly.
 
 ---
 
-## Quick start
+## Two ways to run it
+
+### 1. As a background app (recommended) — no terminal
+
+```bash
+./build_app.sh
+```
+
+This builds **`dist/Local Dictation.app`** (via py2app). Double-click it: a 🎙️
+icon appears in your menu bar and it runs quietly in the background. macOS asks
+for **Microphone** access on first launch — click **Allow**. Then hold `fn`,
+speak, release — done. Click the menu-bar icon for status, the last
+transcription, and **Quit**.
+
+> Built with py2app so macOS attributes Microphone/Accessibility permissions to
+> *this app* (a plain shell wrapper hands that identity to the shared system
+> Python and the mic prompt never works).
+
+Drag `dist/Local Dictation.app` to **/Applications**, and add it under **System
+Settings → General → Login Items** to start it automatically at login.
+
+Menu-bar icon at a glance: ⏳ loading model · 🎙️ ready · 🔴 listening · ✍️
+transcribing · ⚠️ needs Accessibility permission.
+
+### 2. In the terminal (for tinkering / config)
 
 ```bash
 ./dictate.sh
 ```
 
-The first run creates a virtualenv, installs dependencies, and downloads the
-Whisper model (~1.6 GB, cached afterwards). Then:
-
-1. Grant the two permissions macOS asks for (see below).
-2. Hold **`fn`**, speak, release. The text appears where your cursor is.
-3. `Ctrl-C` in the terminal to quit.
+The first run of either creates a virtualenv, installs dependencies, and
+downloads the Whisper model (~1.6 GB, cached afterwards). Then hold **`fn`**,
+speak, release — the text appears where your cursor is. `Ctrl-C` to quit.
 
 You'll hear a soft **Tink** when it starts listening and a **Pop** when text is
 inserted.
@@ -30,16 +51,22 @@ inserted.
 
 ## Permissions (one-time)
 
-macOS gates global key capture and synthetic keystrokes behind two permissions.
-Grant them to the app you launch `dictate.sh` from (Terminal, iTerm, or your IDE):
+macOS gates global key capture and synthetic keystrokes behind two permissions:
 
 | Permission | Where | Why |
 |---|---|---|
 | **Accessibility** | System Settings → Privacy & Security → **Accessibility** | Detect the `fn` key globally and paste text |
 | **Microphone** | System Settings → Privacy & Security → **Microphone** | Record while you hold `fn` |
 
-After adding Accessibility permission you may need to **quit and relaunch** the
-terminal for it to take effect.
+Grant them to whatever launches the engine:
+
+- **App build** → grant to **Local Dictation** (add it under Accessibility; the
+  app shows an alert with instructions if it's missing). The mic prompt appears
+  the first time you dictate.
+- **Terminal** → grant to your terminal app (Terminal, iTerm, your IDE).
+
+After adding Accessibility permission, **quit and relaunch** the app (or
+terminal) for it to take effect.
 
 ### Stop `fn` from opening the emoji picker
 
@@ -118,6 +145,11 @@ asserts the words come back — no microphone or permissions needed.
   device in System Settings → Sound.
 - **First run is slow** → it's downloading the model once; subsequent runs are
   fast.
+- **App doesn't seem to do anything** → check the log at
+  `~/Library/Logs/LocalDictation.log`. You want to see
+  `fn hotkey installed — ready to dictate`; `BLOCKED` means Accessibility is
+  missing. Raw crashes land in `~/Library/Logs/LocalDictation.out.log`.
+- **Rebuild after code changes** → re-run `./build_app.sh`, then relaunch the app.
 
 ## Requirements
 

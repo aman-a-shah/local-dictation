@@ -6,3 +6,5 @@ numpy==2.4.6
 scipy==1.17.1
 pyobjc-framework-Quartz==12.2
 pyobjc-framework-Cocoa==12.2
+pyobjc-framework-AVFoundation==12.2
+pyobjc-framework-ApplicationServices==12.2

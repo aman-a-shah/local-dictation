@@ -53,8 +53,12 @@ class FnHotkey:
                 print(f"[hotkey] on_release error: {exc}", flush=True)
         return event
 
-    def run(self) -> None:
-        """Install the tap and block on the run loop. Raises on permission failure."""
+    def install(self) -> None:
+        """Create the tap and add it to the current run loop (does not block).
+
+        Use this when something else (e.g. NSApplication) already owns the run
+        loop. Raises PermissionError if Accessibility permission is missing.
+        """
         self._tap = Quartz.CGEventTapCreate(
             Quartz.kCGSessionEventTap,
             Quartz.kCGHeadInsertEventTap,
@@ -65,8 +69,8 @@ class FnHotkey:
         )
         if self._tap is None:
             raise PermissionError(
-                "Could not create event tap. Grant Accessibility permission to your "
-                "terminal in System Settings -> Privacy & Security -> Accessibility."
+                "Could not create event tap. Grant Accessibility permission in "
+                "System Settings -> Privacy & Security -> Accessibility."
             )
 
         source = Quartz.CFMachPortCreateRunLoopSource(None, self._tap, 0)
@@ -74,4 +78,8 @@ class FnHotkey:
             Quartz.CFRunLoopGetCurrent(), source, Quartz.kCFRunLoopCommonModes
         )
         Quartz.CGEventTapEnable(self._tap, True)
+
+    def run(self) -> None:
+        """Install the tap and block on its own run loop (terminal/CLI mode)."""
+        self.install()
         Quartz.CFRunLoopRun()
