@@ -1,0 +1,8 @@
+# Local push-to-talk dictation — Apple Silicon (macOS).
+# Pinned to versions verified on macOS 15 / Python 3.13 / M-series.
+mlx-whisper==0.4.3
+sounddevice==0.5.5
+numpy==2.4.6
+scipy==1.17.1
+pyobjc-framework-Quartz==12.2
+pyobjc-framework-Cocoa==12.2
