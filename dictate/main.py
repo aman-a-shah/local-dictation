@@ -15,6 +15,9 @@ import sys
 
 
 def main() -> int:
+    if "--selftest" in sys.argv:
+        return _selftest()
+
     if "--dashboard" in sys.argv:
         from .dashboard_window import main as dashboard_main
 
@@ -34,6 +37,29 @@ def main() -> int:
     from .platforms.windows.app import main as tray_main
 
     return tray_main()
+
+
+def _selftest() -> int:
+    """Import every critical module + construct the transcriber/store.
+
+    Used as a packaging smoke test in CI: a frozen build that can import all its
+    bundled deps and pick a backend exits 0. Does NOT load model weights or open
+    any UI, so it runs headless on a CI runner.
+    """
+    try:
+        from . import bridge, core, paths, store, updater  # noqa: F401
+        from .backends.factory import create_transcriber
+        from .platforms import inject, make_hotkey  # noqa: F401
+
+        t = create_transcriber()
+        store.get_store().stats()
+        print(f"selftest OK: backend={t.backend} model={t.model_name} data={paths.data_dir()}")
+        return 0
+    except Exception:
+        import traceback
+
+        traceback.print_exc()
+        return 1
 
 
 if __name__ == "__main__":

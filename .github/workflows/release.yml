@@ -1,0 +1,339 @@
+# =============================================================================
+# Build & release "Local Dictation" for macOS (arm64 + Intel) and Windows.
+#
+# Trigger:
+#   * push a tag matching  v*   (e.g. v1.0.0) -> builds + creates a Release
+#   * workflow_dispatch                       -> builds + uploads artifacts only
+#
+# Each matrix job: build the dashboard (if present) -> PyInstaller -> --selftest
+# smoke test -> package (dmg / Inno Setup) -> upload artifact. The final
+# `release` job (tag pushes only) gathers artifacts and publishes a GitHub
+# Release with STABLE asset names (see the naming contract below).
+#
+# -----------------------------------------------------------------------------
+# ASSET NAMING CONTRACT (what the website's /api/download must redirect to):
+#
+#   macOS Apple Silicon : LocalDictation-mac-arm64.dmg
+#   macOS Intel (x64)   : LocalDictation-mac-x64.dmg
+#   Windows x64         : LocalDictationSetup-windows-x64.exe
+#
+# These stable-named copies are always attached to the latest Release in
+# addition to the versioned originals (LocalDictation-<ver>-mac-arm64.dmg, etc.),
+# so a download link never has to know the current version.
+# -----------------------------------------------------------------------------
+# CODE SIGNING (optional — builds run UNSIGNED until these secrets are set):
+#
+#   macOS (Developer ID + notarization):
+#     MACOS_CERT_P12        base64 of the Developer ID Application .p12
+#     MACOS_CERT_PASSWORD   password for that .p12
+#     APPLE_ID              Apple ID email for notarytool
+#     APPLE_TEAM_ID         10-char Apple Developer Team ID
+#     APPLE_APP_PASSWORD    app-specific password for notarytool
+#
+#   Windows (Authenticode):
+#     WINDOWS_CERT_PFX      base64 of the code-signing .pfx
+#     WINDOWS_CERT_PASSWORD password for that .pfx
+# =============================================================================
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write # needed by the release job to create/update Releases.
+
+jobs:
+  build:
+    name: build (${{ matrix.label }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            label: mac-arm64
+            requirements: requirements.txt
+            target: mac
+            arch: arm64
+          - os: macos-13
+            label: mac-x64
+            requirements: requirements-macos-intel.txt
+            target: mac
+            arch: x64
+          - os: windows-latest
+            label: windows-x64
+            requirements: requirements-windows.txt
+            target: windows
+            arch: x64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build dashboard (if present)
+        shell: bash
+        run: |
+          if [ -f dashboard/package.json ]; then
+            echo "Building dashboard..."
+            npm --prefix dashboard ci
+            npm --prefix dashboard run build
+          else
+            echo "No dashboard/package.json yet — building without the dashboard UI."
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r "${{ matrix.requirements }}"
+          pip install "pyinstaller==6.11.1"
+
+      # --- Generate the Windows .ico from the PNGs (no .ico checked in) -------
+      - name: Generate Windows icon
+        if: matrix.target == 'windows'
+        shell: bash
+        run: |
+          pip install Pillow
+          python - <<'PY'
+          from PIL import Image
+          src = "assets/AppIcon.iconset/icon_256x256.png"
+          out = "desktop/pyinstaller/AppIcon.ico"
+          img = Image.open(src).convert("RGBA")
+          img.save(out, sizes=[(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
+          print("wrote", out)
+          PY
+
+      # --- Freeze the app -----------------------------------------------------
+      - name: Build with PyInstaller
+        shell: bash
+        run: |
+          pyinstaller --noconfirm --clean desktop/pyinstaller/LocalDictation.spec
+
+      # --- Read the version for naming ----------------------------------------
+      - name: Read version
+        id: ver
+        shell: bash
+        run: |
+          VERSION=$(python -c "import re,io; print(re.search(r'__version__\s*=\s*[\"\x27]([^\"\x27]+)', io.open('dictate/__init__.py').read()).group(1))")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "App version: $VERSION"
+
+      # --- Smoke test: the frozen binary must import everything (--selftest) ---
+      - name: Smoke test (macOS)
+        if: matrix.target == 'mac'
+        shell: bash
+        run: |
+          BIN="dist/Local Dictation.app/Contents/MacOS/Local Dictation"
+          echo "Running selftest: $BIN --selftest"
+          "$BIN" --selftest
+          echo "selftest exit code: $?"
+
+      - name: Smoke test (Windows)
+        if: matrix.target == 'windows'
+        shell: cmd
+        run: |
+          "dist\Local Dictation\Local Dictation.exe" --selftest
+          if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
+
+      # =====================================================================
+      # macOS: optional signing + notarization, then DMG.
+      # =====================================================================
+      - name: Codesign & notarize (macOS)
+        if: matrix.target == 'mac' && secrets.MACOS_CERT_P12 != ''
+        env:
+          MACOS_CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
+          MACOS_CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP="dist/Local Dictation.app"
+
+          # Import the Developer ID cert into a throwaway keychain.
+          KEYCHAIN="$RUNNER_TEMP/build.keychain"
+          KCPW="$(openssl rand -base64 24)"
+          echo "$MACOS_CERT_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$KCPW" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KCPW" "$KEYCHAIN"
+          security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN" \
+            -P "$MACOS_CERT_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: \
+            -s -k "$KCPW" "$KEYCHAIN" >/dev/null
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+
+          IDENTITY="$(security find-identity -v -p codesigning "$KEYCHAIN" \
+            | grep 'Developer ID Application' | head -1 | sed -E 's/.*"(.*)"/\1/')"
+          echo "Signing with: $IDENTITY"
+
+          # Sign every bundled dylib/so first, then the app last (inside-out).
+          find "$APP" -type f \( -name "*.dylib" -o -name "*.so" \) -print0 \
+            | xargs -0 -I{} codesign --force --timestamp --options runtime \
+                --entitlements desktop/macos/entitlements.plist \
+                --sign "$IDENTITY" "{}"
+          codesign --force --timestamp --options runtime --deep \
+            --entitlements desktop/macos/entitlements.plist \
+            --sign "$IDENTITY" "$APP"
+          codesign --verify --deep --strict --verbose=2 "$APP"
+
+          # Notarize the .app (zipped for submission).
+          ZIP="$RUNNER_TEMP/notarize.zip"
+          ditto -c -k --keepParent "$APP" "$ZIP"
+          xcrun notarytool submit "$ZIP" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_PASSWORD" \
+            --wait
+          xcrun stapler staple "$APP"
+
+      - name: Build DMG (macOS)
+        if: matrix.target == 'mac'
+        shell: bash
+        run: |
+          # create-dmg gives a nicer drag-to-Applications layout; install via brew.
+          brew install create-dmg || true
+          chmod +x desktop/macos/dmg.sh
+          desktop/macos/dmg.sh "${{ matrix.arch }}"
+
+      - name: Sign DMG (macOS)
+        if: matrix.target == 'mac' && secrets.MACOS_CERT_P12 != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          IDENTITY="$(security find-identity -v -p codesigning \
+            | grep 'Developer ID Application' | head -1 | sed -E 's/.*"(.*)"/\1/')"
+          DMG="dist/LocalDictation-${{ steps.ver.outputs.version }}-mac-${{ matrix.arch }}.dmg"
+          codesign --force --timestamp --sign "$IDENTITY" "$DMG"
+          xcrun notarytool submit "$DMG" \
+            --apple-id "${{ secrets.APPLE_ID }}" \
+            --team-id "${{ secrets.APPLE_TEAM_ID }}" \
+            --password "${{ secrets.APPLE_APP_PASSWORD }}" \
+            --wait
+          xcrun stapler staple "$DMG"
+
+      # =====================================================================
+      # Windows: build the Inno Setup installer, optionally sign.
+      # =====================================================================
+      - name: Build installer (Windows)
+        if: matrix.target == 'windows'
+        shell: pwsh
+        run: |
+          # Inno Setup is preinstalled on windows runners; install via choco if not.
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            choco install innosetup --no-progress -y
+            $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          }
+          & "$iscc" "/DAppVersion=${{ steps.ver.outputs.version }}" "desktop\windows\installer.iss"
+
+      - name: Sign installer (Windows)
+        if: matrix.target == 'windows' && secrets.WINDOWS_CERT_PFX != ''
+        shell: pwsh
+        env:
+          WINDOWS_CERT_PFX: ${{ secrets.WINDOWS_CERT_PFX }}
+          WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+        run: |
+          $pfx = "$env:RUNNER_TEMP\cert.pfx"
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:WINDOWS_CERT_PFX))
+          $signtool = (Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" `
+            | Sort-Object FullName -Descending | Select-Object -First 1).FullName
+          $setup = "dist\LocalDictationSetup-${{ steps.ver.outputs.version }}.exe"
+          & "$signtool" sign /f $pfx /p $env:WINDOWS_CERT_PASSWORD `
+            /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 $setup
+
+      # =====================================================================
+      # Upload artifacts (named by label so the release job can find them).
+      # =====================================================================
+      - name: Upload macOS artifact
+        if: matrix.target == 'mac'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.label }}
+          path: dist/LocalDictation-${{ steps.ver.outputs.version }}-mac-${{ matrix.arch }}.dmg
+          if-no-files-found: error
+
+      - name: Upload Windows artifact
+        if: matrix.target == 'windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.label }}
+          path: dist/LocalDictationSetup-${{ steps.ver.outputs.version }}.exe
+          if-no-files-found: error
+
+  # ===========================================================================
+  # Publish a GitHub Release with stable-named assets. Tag pushes only.
+  # ===========================================================================
+  release:
+    name: release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read version
+        id: ver
+        shell: bash
+        run: |
+          VERSION=$(python3 -c "import re,io; print(re.search(r'__version__\s*=\s*[\"\x27]([^\"\x27]+)', io.open('dictate/__init__.py').read()).group(1))")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Stage release assets (versioned + stable names)
+        shell: bash
+        run: |
+          set -euo pipefail
+          V="${{ steps.ver.outputs.version }}"
+          mkdir -p out
+
+          ARM="artifacts/mac-arm64/LocalDictation-${V}-mac-arm64.dmg"
+          X64="artifacts/mac-x64/LocalDictation-${V}-mac-x64.dmg"
+          WIN="artifacts/windows-x64/LocalDictationSetup-${V}.exe"
+
+          # Versioned originals + stable-named copies the website resolves to.
+          if [ -f "$ARM" ]; then
+            cp "$ARM" "out/LocalDictation-${V}-mac-arm64.dmg"
+            cp "$ARM" "out/LocalDictation-mac-arm64.dmg"
+          fi
+          if [ -f "$X64" ]; then
+            cp "$X64" "out/LocalDictation-${V}-mac-x64.dmg"
+            cp "$X64" "out/LocalDictation-mac-x64.dmg"
+          fi
+          if [ -f "$WIN" ]; then
+            cp "$WIN" "out/LocalDictationSetup-${V}-windows-x64.exe"  # versioned
+            cp "$WIN" "out/LocalDictationSetup-windows-x64.exe"        # stable
+          fi
+
+          echo "Release assets:"
+          ls -la out
+
+      - name: Create / update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Local Dictation ${{ steps.ver.outputs.version }}
+          generate_release_notes: true
+          fail_on_unmatched_files: false
+          files: |
+            out/*.dmg
+            out/*.exe

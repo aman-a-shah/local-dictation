@@ -1,0 +1,206 @@
+/* Local Dictation — shared design tokens.
+ *
+ * The single source of truth for the website and the in-app dashboard, so the
+ * two feel like one object. Theme: "warm voice, cold machine" — a deep near-black
+ * canvas with a rose voice-signal and a cool cyan live accent. See DESIGN.md.
+ */
+
+:root {
+  /* ---- Color (OKLCH) -------------------------------------------------- */
+  --bg: oklch(0.165 0.012 280);
+  --bg-deep: oklch(0.13 0.012 280);
+  --surface: oklch(0.205 0.013 282);
+  --surface-2: oklch(0.245 0.015 283);
+  --surface-3: oklch(0.29 0.017 284);
+
+  --line: oklch(1 0 0 / 0.09);
+  --line-strong: oklch(1 0 0 / 0.16);
+
+  --ink: oklch(0.97 0.004 280);
+  --muted: oklch(0.76 0.018 285);
+  --faint: oklch(0.6 0.02 285);
+
+  --rose: oklch(0.7 0.2 18);
+  --rose-bright: oklch(0.76 0.2 20);
+  --rose-dim: oklch(0.7 0.2 18 / 0.16);
+  --cyan: oklch(0.82 0.13 205);
+  --cyan-dim: oklch(0.82 0.13 205 / 0.16);
+  --mint: oklch(0.84 0.15 162);
+
+  /* On-rose text (rose is bright → dark ink for AA contrast) */
+  --on-rose: oklch(0.18 0.02 25);
+
+  /* ---- Typography ----------------------------------------------------- */
+  --font-sans: "Schibsted Grotesk Variable", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", "Cascadia Code",
+    Menlo, Consolas, monospace;
+
+  /* Fluid type scale (ratio ~1.25), hero capped at 6rem */
+  --text-xs: 0.78rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: clamp(1.1rem, 1.02rem + 0.4vw, 1.25rem);
+  --text-xl: clamp(1.35rem, 1.2rem + 0.7vw, 1.6rem);
+  --text-2xl: clamp(1.7rem, 1.4rem + 1.4vw, 2.25rem);
+  --text-3xl: clamp(2.1rem, 1.6rem + 2.4vw, 3.1rem);
+  --text-4xl: clamp(2.7rem, 1.9rem + 3.8vw, 4.6rem);
+  --text-5xl: clamp(3.2rem, 2rem + 5.4vw, 6rem);
+
+  --leading-tight: 1.08;
+  --leading-snug: 1.28;
+  --leading-normal: 1.62; /* dark-mode body: +~0.07 */
+  --tracking-display: -0.03em;
+  --tracking-tight: -0.015em;
+  --tracking-wide: 0.02em;
+
+  /* ---- Space + radius ------------------------------------------------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+  --space-10: 8rem;
+
+  --radius-sm: 7px;
+  --radius: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-full: 999px;
+
+  --content: 1200px;
+  --content-narrow: 760px;
+
+  /* ---- Elevation ------------------------------------------------------ */
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.3);
+  --shadow: 0 8px 24px -8px oklch(0 0 0 / 0.5);
+  --shadow-lg: 0 30px 70px -20px oklch(0 0 0 / 0.65);
+  --glow-rose: 0 0 0 1px var(--rose-dim), 0 12px 50px -12px oklch(0.7 0.2 18 / 0.5);
+  --glow-cyan: 0 0 0 1px var(--cyan-dim), 0 12px 50px -12px oklch(0.82 0.13 205 / 0.45);
+
+  /* ---- Motion -------------------------------------------------------- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* expo-ish */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --dur-fast: 140ms;
+  --dur: 240ms;
+  --dur-slow: 520ms;
+
+  /* ---- Z-index scale ------------------------------------------------- */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-backdrop: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+  --z-tooltip: 600;
+
+  color-scheme: dark;
+}
+
+/* ---- Reset + base ---------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  font-synthesis: none;
+}
+
+h1, h2, h3, h4 {
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display);
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+h4 { line-height: var(--leading-snug); }
+
+p { text-wrap: pretty; }
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+img, svg, canvas {
+  display: block;
+  max-width: 100%;
+}
+
+::selection {
+  background: var(--rose);
+  color: var(--on-rose);
+}
+
+:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Faint grain/aurora helpers used by hero backgrounds */
+.ld-aurora {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.ld-aurora::before,
+.ld-aurora::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.5;
+}
+.ld-aurora::before {
+  width: 60vw; height: 60vw;
+  top: -25vw; left: -10vw;
+  background: radial-gradient(circle, oklch(0.7 0.2 18 / 0.35), transparent 65%);
+}
+.ld-aurora::after {
+  width: 45vw; height: 45vw;
+  top: -10vw; right: -10vw;
+  background: radial-gradient(circle, oklch(0.82 0.13 205 / 0.22), transparent 65%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

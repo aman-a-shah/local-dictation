@@ -7,3 +7,13 @@ Local Dictation.app/
 build/
 dist/
 *.log
+
+# Node / web / dashboard
+node_modules/
+.next/
+out/
+web/content/
+dashboard/dist/
+*.tsbuildinfo
+.vercel
+.turbo

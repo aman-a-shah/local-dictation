@@ -1,0 +1,125 @@
+/* Shared component classes for the website + dashboard. Import after tokens.css. */
+
+/* ---- Button --------------------------------------------------------- */
+.ld-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0.7rem 1.15rem;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  font-weight: 600;
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-tight);
+  line-height: 1;
+  transition: transform var(--dur-fast) var(--ease-out),
+    background var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
+  white-space: nowrap;
+}
+.ld-btn:active {
+  transform: translateY(1px) scale(0.99);
+}
+.ld-btn--primary {
+  background: var(--rose);
+  color: var(--on-rose);
+  box-shadow: var(--glow-rose);
+}
+.ld-btn--primary:hover {
+  background: var(--rose-bright);
+  transform: translateY(-1px);
+}
+.ld-btn--ghost {
+  background: oklch(1 0 0 / 0.03);
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+.ld-btn--ghost:hover {
+  background: oklch(1 0 0 / 0.07);
+  border-color: var(--ink);
+}
+.ld-btn--lg {
+  padding: 0.95rem 1.6rem;
+  font-size: var(--text-base);
+}
+.ld-btn--block {
+  width: 100%;
+}
+
+/* ---- Keycap --------------------------------------------------------- */
+.ld-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2em;
+  padding: 0.18em 0.55em;
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  font-weight: 500;
+  color: var(--ink);
+  background: linear-gradient(oklch(0.27 0.016 284), var(--surface-2));
+  border: 1px solid var(--line-strong);
+  border-bottom-width: 2px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 1px 0 oklch(0 0 0 / 0.4), inset 0 1px 0 oklch(1 0 0 / 0.06);
+  line-height: 1.4;
+}
+
+/* ---- Eyebrow used sparingly (NOT on every section) ------------------ */
+.ld-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--muted);
+  letter-spacing: var(--tracking-wide);
+}
+.ld-tag__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  background: var(--cyan);
+  box-shadow: 0 0 12px var(--cyan);
+}
+
+/* ---- Stat (instrument readout, not a SaaS metric card) -------------- */
+.ld-stat__num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--ink);
+}
+.ld-stat__label {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+/* ---- Card (used sparingly) ------------------------------------------ */
+.ld-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+/* ---- Reveal on scroll (enhances already-visible content) ------------ */
+.ld-reveal {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ld-reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity var(--dur-slow) var(--ease-out),
+      transform var(--dur-slow) var(--ease-out);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  .ld-reveal.is-in {
+    opacity: 1;
+    transform: none;
+  }
+}

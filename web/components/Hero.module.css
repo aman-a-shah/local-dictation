@@ -1,0 +1,139 @@
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding-block: clamp(var(--space-7), 7vw, var(--space-10));
+  border-bottom: 1px solid var(--line);
+}
+.grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: clamp(var(--space-6), 5vw, var(--space-8));
+  align-items: center;
+}
+.copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.title {
+  font-size: var(--text-5xl);
+  letter-spacing: var(--tracking-display);
+  margin-top: var(--space-2);
+}
+.titleAccent {
+  color: var(--rose);
+}
+.lead {
+  margin-top: var(--space-1);
+}
+.actions {
+  margin-top: var(--space-3);
+}
+.hint {
+  color: var(--faint);
+  font-size: var(--text-sm);
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  flex-wrap: wrap;
+}
+
+/* ---- Demo panel ----------------------------------------------------- */
+.demo {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(160deg, var(--surface), var(--bg-deep));
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+.demoChrome {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--line);
+  background: oklch(1 0 0 / 0.02);
+}
+.dot {
+  width: 11px;
+  height: 11px;
+  border-radius: var(--radius-full);
+  background: var(--surface-3);
+}
+.demoTitle {
+  margin-left: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--faint);
+}
+.demoBody {
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-height: 280px;
+}
+.transcript {
+  font-size: var(--text-lg);
+  line-height: var(--leading-snug);
+  color: var(--ink);
+  min-height: 3.4em;
+}
+.caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--rose);
+  animation: blink 1s steps(2) infinite;
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+.wave {
+  margin-top: auto;
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: oklch(0 0 0 / 0.25);
+  border: 1px solid var(--line);
+}
+.statusRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+.status {
+  color: var(--muted);
+  transition: color var(--dur) var(--ease-out);
+}
+.statusLive {
+  color: var(--cyan);
+}
+.statusDone {
+  color: var(--mint);
+}
+.statusMeta {
+  color: var(--faint);
+}
+
+@media (max-width: 880px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .demo {
+    order: 2;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .caret {
+    animation: none;
+  }
+}

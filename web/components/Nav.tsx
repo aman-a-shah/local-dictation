@@ -1,0 +1,24 @@
+import Link from "next/link";
+import { Logo, ButtonLink } from "@local-dictation/ui";
+import styles from "./Nav.module.css";
+
+export function Nav() {
+  return (
+    <header className={styles.nav}>
+      <div className={styles.inner}>
+        <Link href="/" aria-label="Local Dictation home" className={styles.brand}>
+          <Logo size={26} />
+        </Link>
+        <nav className={styles.links} aria-label="Primary">
+          <Link href="/#how">How it works</Link>
+          <Link href="/#privacy">Privacy</Link>
+          <Link href="/faq">FAQ</Link>
+          <Link href="/changelog">Changelog</Link>
+        </nav>
+        <ButtonLink href="/download" className={styles.cta}>
+          Download
+        </ButtonLink>
+      </div>
+    </header>
+  );
+}

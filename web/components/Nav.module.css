@@ -1,0 +1,48 @@
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  background: oklch(0.165 0.012 280 / 0.72);
+  backdrop-filter: blur(14px) saturate(1.3);
+  border-bottom: 1px solid var(--line);
+}
+.inner {
+  width: 100%;
+  max-width: var(--content);
+  margin-inline: auto;
+  padding: var(--space-3) var(--space-5);
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+}
+.brand {
+  display: inline-flex;
+}
+.links {
+  display: flex;
+  gap: var(--space-5);
+  margin-left: auto;
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+.links a {
+  transition: color var(--dur) var(--ease-out);
+}
+.links a:hover {
+  color: var(--ink);
+}
+.cta {
+  padding: 0.5rem 0.95rem;
+}
+
+@media (max-width: 720px) {
+  .links {
+    display: none;
+  }
+  .inner {
+    gap: var(--space-3);
+  }
+  .cta {
+    margin-left: auto;
+  }
+}

@@ -1,0 +1,122 @@
+/* Site-level layout helpers (tokens + components come from @local-dictation/ui). */
+
+.skip-link {
+  position: fixed;
+  top: -100px;
+  left: var(--space-4);
+  z-index: var(--z-tooltip);
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius);
+  transition: top var(--dur) var(--ease-out);
+}
+.skip-link:focus {
+  top: var(--space-4);
+}
+
+.container {
+  width: 100%;
+  max-width: var(--content);
+  margin-inline: auto;
+  padding-inline: var(--space-5);
+}
+.container--narrow {
+  max-width: var(--content-narrow);
+}
+
+/* Section rhythm — varied, not uniform */
+.section {
+  padding-block: clamp(var(--space-8), 6vw, var(--space-10));
+}
+.section--tight {
+  padding-block: clamp(var(--space-7), 4vw, var(--space-8));
+}
+
+.eyebrow-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.lead {
+  color: var(--muted);
+  font-size: var(--text-lg);
+  max-width: 60ch;
+}
+
+.hr {
+  border: none;
+  border-top: 1px solid var(--line);
+}
+
+/* Prose for legal / long-form */
+.prose {
+  max-width: 72ch;
+  color: var(--muted);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+}
+.prose h1 {
+  color: var(--ink);
+  font-size: var(--text-3xl);
+  margin-bottom: var(--space-4);
+}
+.prose h2 {
+  color: var(--ink);
+  font-size: var(--text-xl);
+  margin-top: var(--space-7);
+  margin-bottom: var(--space-3);
+}
+.prose h3 {
+  color: var(--ink);
+  font-size: var(--text-lg);
+  margin-top: var(--space-5);
+  margin-bottom: var(--space-2);
+}
+.prose p,
+.prose ul,
+.prose ol,
+.prose table {
+  margin-bottom: var(--space-4);
+}
+.prose ul,
+.prose ol {
+  padding-left: 1.4em;
+}
+.prose li {
+  margin-bottom: var(--space-2);
+}
+.prose a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--rose);
+}
+.prose code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--surface-2);
+  padding: 0.1em 0.4em;
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+}
+.prose strong {
+  color: var(--ink);
+}
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+.prose th,
+.prose td {
+  border: 1px solid var(--line);
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+}
+.prose th {
+  color: var(--ink);
+  background: var(--surface);
+}

@@ -1,0 +1,14 @@
+.wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.all {
+  color: var(--muted);
+  font-size: var(--text-sm);
+  transition: color var(--dur) var(--ease-out);
+}
+.all:hover {
+  color: var(--ink);
+}
