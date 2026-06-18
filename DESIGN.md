@@ -2,43 +2,50 @@
 
 ## Theme
 
-**"Warm voice, cold machine."** A deep near-black canvas — the app's native
-habitat is the menu bar and the camera notch, and the brand promise is on-device
-privacy, so the surface is dark, quiet, and precise like audio hardware. The one
-warm thing is the voice: a rose/coral waveform that glows against the dark. A
-cool cyan appears only while *listening*, like the live LED on a recording
-interface. The reference lane is **precision audio instrument meets Linear-dark**,
-explicitly NOT SaaS-cream, NOT purple-AI-gradient, NOT editorial-magazine.
+**Light, premium, precise — "white instrument, warm voice."** A pure-white
+canvas with deep ink, generous space, crisp hairlines, and soft shadows — the
+Stripe / Linear-light / Apple lane of restraint. The one warm thing is the voice:
+a single coral accent (the waveform, key CTAs). A cool blue appears only while
+*listening*, like the live LED on a recording interface. **No gradients** — solid
+fills, hairlines, and soft shadows only. Explicitly NOT SaaS-cream, NOT
+purple-AI-gradient, NOT editorial-magazine.
 
-Mode is dark by deliberate choice (scene: a developer dictating into their editor
-at night, watching a thin waveform glow under the notch). The website and the
-in-app dashboard share these exact tokens so opening the app feels like stepping
-inside the site.
+Scene: a clean, bright workspace; the product feels like a well-made instrument,
+not a funnel. The hero "editor" demo is a single dark panel for premium contrast
+against the white page. The website and the in-app dashboard share these exact
+tokens so opening the app feels like stepping inside the site.
 
 ## Color (OKLCH)
 
-Strategy: **Committed dark.** The dark surface carries the mood; rose is the brand
-signal, cyan the live accent. Neutrals are tinted faintly cool (toward the canvas
-hue), never warm.
+Strategy: **Restrained** — white canvas + tinted-cool neutrals + ONE coral accent
+(≤10% of the surface). Neutrals are tinted faintly cool, never warm.
 
 | Role | Token | Value |
 |---|---|---|
-| Canvas (base bg) | `--bg` | `oklch(0.165 0.012 280)` |
-| Surface (raised) | `--surface` | `oklch(0.205 0.013 282)` |
-| Surface 2 (cards) | `--surface-2` | `oklch(0.245 0.015 283)` |
-| Hairline | `--line` | `oklch(1 0 0 / 0.09)` |
-| Hairline strong | `--line-strong` | `oklch(1 0 0 / 0.16)` |
-| Ink (primary text) | `--ink` | `oklch(0.97 0.004 280)` |
-| Muted (secondary) | `--muted` | `oklch(0.76 0.018 285)` |
-| Faint (tertiary, large only) | `--faint` | `oklch(0.6 0.02 285)` |
-| Brand / voice (primary) | `--rose` | `oklch(0.7 0.2 18)` |
-| Brand bright (hover) | `--rose-bright` | `oklch(0.76 0.2 20)` |
-| Live / listening accent | `--cyan` | `oklch(0.82 0.13 205)` |
-| Success (inserted ✓) | `--mint` | `oklch(0.84 0.15 162)` |
+| Canvas (base bg) | `--bg` | `oklch(1 0 0)` (pure white) |
+| Soft band | `--bg-soft` | `oklch(0.985 0.003 265)` |
+| Surface (cards) | `--surface` | `oklch(1 0 0)` + hairline + soft shadow |
+| Dark panel (rare) | `--surface-ink` | `oklch(0.22 0.012 265)` (hero demo) |
+| Hairline | `--line` | `oklch(0.27 0.011 265 / 0.1)` |
+| Ink (headings) | `--ink-strong` | `oklch(0.19 0.012 265)` |
+| Ink (body) | `--ink` | `oklch(0.27 0.011 265)` |
+| Muted (secondary) | `--muted` | `oklch(0.47 0.012 265)` |
+| Accent / voice | `--accent` | `oklch(0.6 0.2 22)` (coral) |
+| Accent hover | `--accent-strong` | `oklch(0.53 0.21 22)` |
+| Live / listening | `--live` | `oklch(0.55 0.13 235)` |
+| Success (inserted ✓) | `--mint` | `oklch(0.58 0.13 162)` |
 
-Contrast: ink (L .97) and muted (L .76) both clear 4.5:1 on `--bg` (L .165). Rose
-and cyan are used for large text, icons, and graphics only — never small body
-copy. State is never color-only (always paired with a glyph/label).
+Contrast: ink (L .27) and muted (L .47) both clear 4.5:1 on white. Accent + live
+are used for large text, icons, and graphics only — never small body copy. State
+is never color-only (always paired with a glyph/label).
+
+## Motion
+
+Premium, restrained: Lenis inertial smooth scroll; staggered scroll-reveals
+(content visible by default, motion only enhances); count-up on stats entering
+view; a thin accent scroll-progress bar in the nav; hover underlines on links.
+All ease-out (expo/quart), no bounce. Full `prefers-reduced-motion` path:
+Lenis off, reveals instant, count-ups jump to final.
 
 ## Typography
 

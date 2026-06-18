@@ -1,4 +1,5 @@
-/* Shared component classes for the website + dashboard. Import after tokens.css. */
+/* Shared component classes for the website + dashboard. Import after tokens.css.
+ * Light, premium, no gradients — solid fills + soft shadows + hairlines. */
 
 /* ---- Button --------------------------------------------------------- */
 .ld-btn {
@@ -6,7 +7,7 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  padding: 0.7rem 1.15rem;
+  padding: 0.68rem 1.15rem;
   border-radius: var(--radius);
   border: 1px solid transparent;
   font-weight: 600;
@@ -22,25 +23,26 @@
   transform: translateY(1px) scale(0.99);
 }
 .ld-btn--primary {
-  background: var(--rose);
-  color: var(--on-rose);
-  box-shadow: var(--glow-rose);
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: var(--shadow-accent);
 }
 .ld-btn--primary:hover {
-  background: var(--rose-bright);
+  background: var(--accent-strong);
   transform: translateY(-1px);
 }
 .ld-btn--ghost {
-  background: oklch(1 0 0 / 0.03);
+  background: var(--surface);
   border-color: var(--line-strong);
-  color: var(--ink);
+  color: var(--ink-strong);
 }
 .ld-btn--ghost:hover {
-  background: oklch(1 0 0 / 0.07);
-  border-color: var(--ink);
+  border-color: var(--ink-strong);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
 }
 .ld-btn--lg {
-  padding: 0.95rem 1.6rem;
+  padding: 0.92rem 1.6rem;
   font-size: var(--text-base);
 }
 .ld-btn--block {
@@ -57,16 +59,16 @@
   font-family: var(--font-mono);
   font-size: 0.86em;
   font-weight: 500;
-  color: var(--ink);
-  background: linear-gradient(oklch(0.27 0.016 284), var(--surface-2));
+  color: var(--ink-strong);
+  background: var(--surface);
   border: 1px solid var(--line-strong);
   border-bottom-width: 2px;
   border-radius: var(--radius-sm);
-  box-shadow: 0 1px 0 oklch(0 0 0 / 0.4), inset 0 1px 0 oklch(1 0 0 / 0.06);
+  box-shadow: var(--shadow-sm);
   line-height: 1.4;
 }
 
-/* ---- Eyebrow used sparingly (NOT on every section) ------------------ */
+/* ---- Single deliberate kicker (not on every section) --------------- */
 .ld-tag {
   display: inline-flex;
   align-items: center;
@@ -80,8 +82,7 @@
   width: 7px;
   height: 7px;
   border-radius: var(--radius-full);
-  background: var(--cyan);
-  box-shadow: 0 0 12px var(--cyan);
+  background: var(--accent);
 }
 
 /* ---- Stat (instrument readout, not a SaaS metric card) -------------- */
@@ -91,7 +92,7 @@
   font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1;
-  color: var(--ink);
+  color: var(--ink-strong);
 }
 .ld-stat__label {
   color: var(--muted);
@@ -103,6 +104,7 @@
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
 }
 
 /* ---- Reveal on scroll (enhances already-visible content) ------------ */
@@ -113,10 +115,11 @@
 @media (prefers-reduced-motion: no-preference) {
   .ld-reveal {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translateY(20px);
     transition: opacity var(--dur-slow) var(--ease-out),
       transform var(--dur-slow) var(--ease-out);
     transition-delay: var(--reveal-delay, 0ms);
+    will-change: opacity, transform;
   }
   .ld-reveal.is-in {
     opacity: 1;

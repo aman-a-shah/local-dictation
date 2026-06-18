@@ -1,7 +1,7 @@
 .footer {
   border-top: 1px solid var(--line);
   margin-top: var(--space-10);
-  background: var(--bg-deep);
+  background: var(--bg-soft);
 }
 .inner {
   width: 100%;

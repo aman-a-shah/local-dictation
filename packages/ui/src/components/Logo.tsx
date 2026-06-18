@@ -17,11 +17,11 @@ export function Logo({ size = 28, withWordmark = true, className }: Props) {
         fill="none"
         aria-hidden="true"
       >
-        <rect x="0.5" y="0.5" width="31" height="31" rx="8" fill="oklch(0.205 0.013 282)" stroke="oklch(1 0 0 / 0.12)" />
+        <rect x="0.5" y="0.5" width="31" height="31" rx="8" fill="var(--ink-strong, #19191f)" />
         {[
           [8, 11],
           [12, 6],
-          [16, 14],
+          [16, 16],
           [20, 8],
           [24, 12],
         ].map(([x, h], i) => (
@@ -32,7 +32,7 @@ export function Logo({ size = 28, withWordmark = true, className }: Props) {
             width="2.8"
             height={h}
             rx="1.4"
-            fill="oklch(0.7 0.2 18)"
+            fill="var(--accent, #db4a3d)"
           />
         ))}
       </svg>

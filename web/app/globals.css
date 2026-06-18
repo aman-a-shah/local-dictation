@@ -5,7 +5,7 @@
   top: -100px;
   left: var(--space-4);
   z-index: var(--z-tooltip);
-  background: var(--surface-2);
+  background: var(--surface-soft);
   border: 1px solid var(--line-strong);
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius);
@@ -92,12 +92,12 @@
   color: var(--ink);
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-decoration-color: var(--rose);
+  text-decoration-color: var(--accent);
 }
 .prose code {
   font-family: var(--font-mono);
   font-size: 0.88em;
-  background: var(--surface-2);
+  background: var(--surface-soft);
   padding: 0.1em 0.4em;
   border-radius: var(--radius-sm);
   color: var(--ink);

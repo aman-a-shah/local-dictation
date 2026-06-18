@@ -7,6 +7,7 @@ webview owns its own main loop.
 
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 
@@ -21,8 +22,18 @@ def open_dashboard() -> None:
         return  # already open
 
     if getattr(sys, "frozen", False):
-        # The frozen app re-invokes itself with a flag the entry point handles.
-        cmd = [sys.executable, "--dashboard"]
+        # Re-launch our own app *bundle* with the --dashboard flag, which the
+        # entry point (dictate.main) routes to the dashboard window.
+        #
+        # We must launch the bundle executable, not sys.executable: under py2app
+        # sys.executable is the embedded Python interpreter (it doesn't
+        # understand --dashboard and wouldn't set up the bundle's import paths),
+        # so the old `[sys.executable, "--dashboard"]` silently exited with
+        # "unknown option --dashboard" and the dashboard never opened. py2app
+        # exposes the real launcher via $ARGVZERO; PyInstaller's sys.executable
+        # already is the launcher, so fall back to it.
+        launcher = os.environ.get("ARGVZERO") or sys.executable
+        cmd = [launcher, "--dashboard"]
     else:
         cmd = [sys.executable, "-m", "dictate.dashboard_window"]
 

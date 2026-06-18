@@ -25,7 +25,7 @@
 .version {
   font-family: var(--font-mono);
   font-size: var(--text-2xl);
-  color: var(--rose);
+  color: var(--accent);
 }
 .date {
   font-family: var(--font-mono);
@@ -44,5 +44,5 @@
   color: var(--ink);
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-decoration-color: var(--rose);
+  text-decoration-color: var(--accent);
 }

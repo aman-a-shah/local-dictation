@@ -1,4 +1,4 @@
-import { Kbd, ButtonLink, Stat } from "@local-dictation/ui";
+import { Kbd, ButtonLink, Stat, CountUp } from "@local-dictation/ui";
 import { Hero } from "@/components/Hero";
 import { Reveal } from "@/components/Reveal";
 import { getLatestRelease } from "@/lib/releases";
@@ -106,7 +106,7 @@ export default async function Home() {
               <Stat value="∞" label="free — no subscription, open source" />
             </div>
             <div className="ld-reveal" style={{ ["--reveal-delay" as string]: "240ms" }}>
-              <Stat value="40+" label="languages, auto-detected" />
+              <Stat value={<CountUp end={40} suffix="+" />} label="languages, auto-detected" />
             </div>
           </div>
           <p className={styles.specNote}>

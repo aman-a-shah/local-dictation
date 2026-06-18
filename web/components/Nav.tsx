@@ -1,8 +1,11 @@
+"use client";
+
 import Link from "next/link";
-import { Logo, ButtonLink } from "@local-dictation/ui";
+import { Logo, ButtonLink, useScrollProgress } from "@local-dictation/ui";
 import styles from "./Nav.module.css";
 
 export function Nav() {
+  const progress = useScrollProgress();
   return (
     <header className={styles.nav}>
       <div className={styles.inner}>
@@ -19,6 +22,11 @@ export function Nav() {
           Download
         </ButtonLink>
       </div>
+      <div
+        className={styles.progress}
+        style={{ ["--p" as string]: `${(progress * 100).toFixed(2)}%` }}
+        aria-hidden="true"
+      />
     </header>
   );
 }

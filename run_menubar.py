@@ -1,6 +1,11 @@
-"""py2app entry point for the menu-bar app."""
+"""py2app entry point for the menu-bar app.
 
-from dictate.menu_app import main
+Dispatches through ``dictate.main`` (same as the PyInstaller ``run_app.py``) so
+flags like ``--dashboard`` are honored when the bundle re-launches itself. With
+no flags on macOS this lands on the native menu-bar app.
+"""
+
+from dictate.main import main
 
 if __name__ == "__main__":
     raise SystemExit(main())

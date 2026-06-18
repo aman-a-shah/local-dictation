@@ -11,7 +11,7 @@
   color: var(--ink);
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-decoration-color: var(--rose);
+  text-decoration-color: var(--accent);
 }
 .list {
   display: flex;
@@ -44,7 +44,7 @@
 .summary::after {
   content: "+";
   font-family: var(--font-mono);
-  color: var(--rose);
+  color: var(--accent);
   font-size: 1.3em;
   transition: transform var(--dur) var(--ease-out);
 }
@@ -52,7 +52,7 @@
   transform: rotate(45deg);
 }
 .summary:hover {
-  color: var(--rose-bright);
+  color: var(--accent-strong);
 }
 .answer {
   padding: 0 var(--space-5) var(--space-5);
@@ -62,7 +62,7 @@
 .answer code {
   font-family: var(--font-mono);
   font-size: 0.88em;
-  background: var(--surface-2);
+  background: var(--surface-soft);
   padding: 0.1em 0.4em;
   border-radius: var(--radius-sm);
   color: var(--ink);
@@ -71,7 +71,7 @@
   color: var(--ink);
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-decoration-color: var(--rose);
+  text-decoration-color: var(--accent);
 }
 .answer strong {
   color: var(--ink);

@@ -34,7 +34,7 @@ export function App() {
         <div className="side__foot">
           <span>v{meta?.version ?? "—"}</span>
           <span>{meta ? `${meta.platform} · ${meta.arch}` : ""}</span>
-          {!isNative && <span style={{ color: "var(--rose)" }}>preview (mock data)</span>}
+          {!isNative && <span style={{ color: "var(--accent)" }}>preview (mock data)</span>}
         </div>
       </aside>
 

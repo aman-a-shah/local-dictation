@@ -26,7 +26,7 @@
 .stepNum {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
-  color: var(--rose);
+  color: var(--accent);
   font-weight: 600;
 }
 .stepTitle {
@@ -41,7 +41,7 @@
 .privacy {
   position: relative;
   padding-block: clamp(var(--space-8), 6vw, var(--space-10));
-  background: linear-gradient(var(--bg-deep), var(--bg));
+  background: var(--bg-soft);
   border-block: 1px solid var(--line);
 }
 .privacyGrid {
@@ -55,7 +55,7 @@
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  color: var(--cyan);
+  color: var(--live);
   margin-bottom: var(--space-3);
 }
 .assurances {
@@ -68,10 +68,11 @@
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   color: var(--ink);
-  padding: 0.35em 0.7em;
+  padding: 0.4em 0.8em;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-full);
-  background: oklch(1 0 0 / 0.03);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
 }
 
 .flow {
@@ -90,13 +91,13 @@
   text-align: center;
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius);
-  background: var(--surface-2);
+  background: var(--surface-soft);
   border: 1px solid var(--line);
   font-size: var(--text-sm);
 }
 .flowChip {
-  background: var(--rose-dim);
-  border-color: var(--rose);
+  background: var(--accent-soft);
+  border-color: var(--accent);
   color: var(--ink);
   font-weight: 600;
   display: flex;
@@ -118,7 +119,7 @@
   font-size: var(--text-xs);
   color: var(--faint);
   text-decoration: line-through;
-  text-decoration-color: var(--rose);
+  text-decoration-color: var(--accent);
 }
 
 /* ---- Stats ---------------------------------------------------------- */
@@ -138,7 +139,7 @@
   font-family: var(--font-mono);
   font-size: 0.9em;
   color: var(--ink);
-  background: var(--surface-2);
+  background: var(--surface-soft);
   padding: 0.1em 0.4em;
   border-radius: var(--radius-sm);
 }
@@ -178,7 +179,7 @@
   font-size: var(--text-xs);
   line-height: 1.6;
   color: var(--ink);
-  background: var(--bg-deep);
+  background: var(--bg-soft);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: var(--space-3);

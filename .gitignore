@@ -17,3 +17,6 @@ dashboard/dist/
 *.tsbuildinfo
 .vercel
 .turbo
+
+# Local design reference (separate repo)
+awesome-design-md/

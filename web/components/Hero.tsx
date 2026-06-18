@@ -66,7 +66,6 @@ export function Hero() {
 
   return (
     <section className={styles.hero}>
-      <div className="ld-aurora" aria-hidden="true" />
       <div className={`container ${styles.grid}`}>
         <div className={styles.copy}>
           <Tag>100% on-device · no cloud</Tag>

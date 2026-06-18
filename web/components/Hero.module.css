@@ -23,7 +23,7 @@
   margin-top: var(--space-2);
 }
 .titleAccent {
-  color: var(--rose);
+  color: var(--accent);
 }
 .lead {
   margin-top: var(--space-1);
@@ -40,11 +40,11 @@
   flex-wrap: wrap;
 }
 
-/* ---- Demo panel ----------------------------------------------------- */
+/* ---- Demo panel (a dark "editor" mock — premium contrast on the light page) -- */
 .demo {
-  border: 1px solid var(--line-strong);
+  border: 1px solid oklch(1 0 0 / 0.08);
   border-radius: var(--radius-lg);
-  background: linear-gradient(160deg, var(--surface), var(--bg-deep));
+  background: var(--surface-ink);
   box-shadow: var(--shadow-lg);
   overflow: hidden;
 }
@@ -53,20 +53,19 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--line);
-  background: oklch(1 0 0 / 0.02);
+  border-bottom: 1px solid oklch(1 0 0 / 0.08);
 }
 .dot {
   width: 11px;
   height: 11px;
   border-radius: var(--radius-full);
-  background: var(--surface-3);
+  background: oklch(1 0 0 / 0.16);
 }
 .demoTitle {
   margin-left: var(--space-2);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--faint);
+  color: var(--muted-on-dark);
 }
 .demoBody {
   padding: var(--space-5);
@@ -78,7 +77,7 @@
 .transcript {
   font-size: var(--text-lg);
   line-height: var(--leading-snug);
-  color: var(--ink);
+  color: var(--on-dark);
   min-height: 3.4em;
 }
 .caret {
@@ -87,7 +86,7 @@
   height: 1.1em;
   margin-left: 2px;
   vertical-align: text-bottom;
-  background: var(--rose);
+  background: var(--accent);
   animation: blink 1s steps(2) infinite;
 }
 @keyframes blink {
@@ -100,7 +99,7 @@
   padding: var(--space-3);
   border-radius: var(--radius);
   background: oklch(0 0 0 / 0.25);
-  border: 1px solid var(--line);
+  border: 1px solid oklch(1 0 0 / 0.06);
 }
 .statusRow {
   display: flex;
@@ -111,17 +110,18 @@
   font-size: var(--text-xs);
 }
 .status {
-  color: var(--muted);
+  color: var(--muted-on-dark);
   transition: color var(--dur) var(--ease-out);
 }
 .statusLive {
-  color: var(--cyan);
+  color: var(--live);
 }
 .statusDone {
   color: var(--mint);
 }
 .statusMeta {
-  color: var(--faint);
+  color: var(--muted-on-dark);
+  opacity: 0.7;
 }
 
 @media (max-width: 880px) {

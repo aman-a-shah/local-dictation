@@ -13,7 +13,7 @@
 }
 .version {
   font-family: var(--font-mono);
-  color: var(--rose);
+  color: var(--accent);
 }
 .firstrun {
   margin-top: var(--space-4);
@@ -45,7 +45,7 @@
 .guideTitle {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
-  color: var(--cyan);
+  color: var(--live);
   margin-bottom: var(--space-3);
 }
 .steps {
@@ -73,7 +73,7 @@
   color: var(--ink);
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-decoration-color: var(--rose);
+  text-decoration-color: var(--accent);
 }
 .reqs {
   margin-top: var(--space-8);

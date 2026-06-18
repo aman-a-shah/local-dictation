@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@local-dictation/ui": "*",
+    "lenis": "1.1.13",
     "marked": "14.1.2",
     "next": "14.2.35",
     "react": "18.3.1",

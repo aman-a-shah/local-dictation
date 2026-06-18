@@ -15,11 +15,10 @@ type Props = {
   intensity?: number;
 };
 
-const ROSE = "oklch(0.7 0.2 18)";
-const ROSE_DIM = "oklch(0.7 0.2 18 / 0.45)";
-const CYAN = "oklch(0.82 0.13 205)";
-const CYAN_DIM = "oklch(0.82 0.13 205 / 0.5)";
-const MINT = "oklch(0.84 0.15 162)";
+// Solid colors only (no gradients). Coral = the voice; blue = listening.
+const ACCENT = "oklch(0.6 0.2 22)";
+const LIVE = "oklch(0.55 0.13 235)";
+const MINT = "oklch(0.6 0.14 162)";
 
 function prefersReducedMotion() {
   return (
@@ -70,10 +69,10 @@ export function Waveform({
     const ro = new ResizeObserver(resize);
     ro.observe(cv);
 
-    function palette(m: WaveMode) {
-      if (m === "listening") return { a: CYAN, b: CYAN_DIM };
-      if (m === "done") return { a: MINT, b: CYAN_DIM };
-      return { a: ROSE, b: ROSE_DIM };
+    function color(m: WaveMode): string {
+      if (m === "listening") return LIVE;
+      if (m === "done") return MINT;
+      return ACCENT;
     }
 
     function target(i: number, t: number, m: WaveMode): number {
@@ -108,24 +107,22 @@ export function Waveform({
       const gap = Math.max(2, w / bars / 3.2);
       const bw = (w - gap * (bars - 1)) / bars;
       const mid = h / 2;
-      const { a, b } = palette(m);
+      cx!.fillStyle = color(m);
 
       for (let i = 0; i < bars; i++) {
         const tgt = reduced ? target(i, 1.2, "idle") : target(i, t, m);
         heights[i] += (tgt - heights[i]) * (reduced ? 1 : 0.18);
-        const bh = Math.max(bw, heights[i] * (h - 6) * intensity);
+        const norm = heights[i];
+        const bh = Math.max(bw, norm * (h - 6) * intensity);
         const x = i * (bw + gap);
         const y = mid - bh / 2;
-
-        const grad = cx!.createLinearGradient(0, y, 0, y + bh);
-        grad.addColorStop(0, b);
-        grad.addColorStop(0.5, a);
-        grad.addColorStop(1, b);
-        cx!.fillStyle = grad;
+        // Solid fill; quieter bars read slightly lighter for subtle depth.
+        cx!.globalAlpha = 0.45 + Math.min(0.55, norm * 0.6);
         const r = Math.min(bw / 2, 3);
         roundRect(cx!, x, y, bw, bh, r);
         cx!.fill();
       }
+      cx!.globalAlpha = 1;
 
       if (!reduced) raf = requestAnimationFrame(draw);
     }

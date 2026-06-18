@@ -34,6 +34,73 @@ export function useReveal<T extends HTMLElement = HTMLElement>() {
   return ref;
 }
 
+/** True once the element has scrolled into view (fires once). */
+export function useInView<T extends HTMLElement = HTMLElement>(rootMargin = "0px 0px -15% 0px") {
+  const ref = useRef<T>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!("IntersectionObserver" in window)) {
+      setInView(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setInView(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin, threshold: 0.2 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [rootMargin]);
+  return { ref, inView };
+}
+
+/** Animate a number from 0 → end with an ease-out curve once `active`. */
+export function useCountUp(end: number, active: boolean, durationMs = 1400) {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (!active) return;
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      setValue(end);
+      return;
+    }
+    let raf = 0;
+    let start = 0;
+    const step = (t: number) => {
+      if (!start) start = t;
+      const p = Math.min(1, (t - start) / durationMs);
+      const eased = 1 - Math.pow(1 - p, 4); // ease-out-quart
+      setValue(end * eased);
+      if (p < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [end, active, durationMs]);
+  return value;
+}
+
+/** 0..1 scroll progress of the whole document (for a nav progress bar). */
+export function useScrollProgress() {
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    const onScroll = () => {
+      const h = document.documentElement;
+      const max = h.scrollHeight - h.clientHeight;
+      setProgress(max > 0 ? h.scrollTop / max : 0);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  return progress;
+}
+
 export type DetectedOS = "mac-arm64" | "mac-x64" | "windows" | "linux" | "unknown";
 
 /** Best-effort OS + arch detection for the download page (UA + hints). */

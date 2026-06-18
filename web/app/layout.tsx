@@ -5,6 +5,7 @@ import "@local-dictation/ui/fonts";
 import "./globals.css";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
+import { SmoothScroll } from "@/components/SmoothScroll";
 
 const description =
   "Push-to-talk voice typing that runs 100% on your device. Hold a key, speak, release — your words are transcribed locally and pasted at your cursor. No cloud, no account, your voice never leaves your machine.";
@@ -27,8 +28,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#1a1a22",
-  colorScheme: "dark",
+  themeColor: "#ffffff",
+  colorScheme: "light",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a href="#main" className="skip-link">
           Skip to content
         </a>
+        <SmoothScroll />
         <Nav />
         <main id="main">{children}</main>
         <Footer />
