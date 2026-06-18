@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Hardened-runtime entitlements for "Local Dictation".
+
+  Applied only when codesigning is enabled in CI (i.e. when the MACOS_CERT_P12
+  secret is present). They grant:
+
+    * device.audio-input          — record from the microphone.
+    * cs.allow-jit                — MLX / Python JIT-compiled code.
+    * cs.allow-unsigned-executable-memory
+                                  — Python and ctranslate2/MLX map executable
+                                    pages that aren't individually signed.
+    * cs.disable-library-validation
+                                  — load the many third-party .dylibs that
+                                    PyInstaller bundles (PortAudio, ctranslate2,
+                                    MLX, pyobjc, etc.) which are not signed by us.
+
+  Usage (in CI, after building the .app):
+    codesign --force --options runtime --timestamp \
+      --entitlements desktop/macos/entitlements.plist \
+      --sign "Developer ID Application: ..." "dist/Local Dictation.app"
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>com.apple.security.device.audio-input</key>
+    <true/>
+    <key>com.apple.security.cs.allow-jit</key>
+    <true/>
+    <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+    <true/>
+    <key>com.apple.security.cs.disable-library-validation</key>
+    <true/>
+</dict>
+</plist>

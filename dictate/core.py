@@ -25,15 +25,15 @@ from typing import Callable, Optional
 import numpy as np
 
 from .audio import Recorder
+from .backends import create_transcriber
 from .config import CONFIG
-from .feedback import Feedback
-from .injector import inject
+from .platforms import Feedback, inject
 from .polish import polish
-from .transcriber import Transcriber
+from .paths import log_path
 
 StateCallback = Callable[[str, Optional[dict]], None]
 
-_LOG_PATH = os.path.expanduser("~/Library/Logs/LocalDictation.log")
+_LOG_PATH = str(log_path())
 
 
 def _dlog(message: str) -> None:
@@ -47,7 +47,7 @@ def _dlog(message: str) -> None:
 class DictationEngine:
     def __init__(self, on_state: Optional[StateCallback] = None) -> None:
         self.recorder = Recorder()
-        self.transcriber = Transcriber()
+        self.transcriber = create_transcriber()
         self.feedback = Feedback()
         self._pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="dictate-stt")
         self._on_state: StateCallback = on_state or (lambda state, info=None: None)
@@ -85,6 +85,16 @@ class DictationEngine:
         self._emit("transcribing", {"duration": duration})
         self._pool.submit(self._process, audio, duration)
 
+    def cancel(self) -> None:
+        """Abort an in-progress capture without transcribing.
+
+        Used by the Windows hotkey when it detects a Ctrl-chord shortcut (e.g.
+        Ctrl+C) rather than a genuine push-to-talk hold.
+        """
+        if self.recorder._recording:  # cheap best-effort; stop + discard
+            self.recorder.stop()
+        self._emit("idle")
+
     # -- worker thread -------------------------------------------------------
     def _process(self, audio: np.ndarray, duration: float) -> None:
         t0 = time.monotonic()
@@ -112,8 +122,26 @@ class DictationEngine:
 
         inject(text)
         self.feedback.done()
+        self._record_history(text, duration, elapsed)
         self._emit("result", {"text": text, "elapsed": elapsed, "duration": duration})
         self._emit("idle")
+
+    def _record_history(self, text: str, duration: float, elapsed: float) -> None:
+        """Persist a successful transcription locally (best-effort, never raises)."""
+        if not CONFIG.save_history:
+            return
+        try:
+            from .store import get_store
+
+            get_store().add(
+                text,
+                duration_s=duration,
+                elapsed_s=elapsed,
+                model=getattr(self.transcriber, "model_name", ""),
+                lang=CONFIG.language or "auto",
+            )
+        except Exception as exc:  # history must never break dictation
+            _dlog(f"history write failed: {exc}")
 
     def shutdown(self) -> None:
         self._pool.shutdown(wait=True)

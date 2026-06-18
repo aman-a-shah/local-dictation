@@ -1,12 +1,43 @@
-# 🎙️ Local Dictation for macOS
+# 🎙️ Local Dictation
 
-Hold the **`fn` (🌐 globe) key**, speak, and release — your words are transcribed
-**100% locally** and pasted at the cursor in whatever app you're in. No cloud, no
-network, no API keys.
+Push-to-talk voice typing that runs **100% on-device**. Hold a key, speak, and
+release — your words are transcribed locally and pasted at the cursor in
+whatever app you're in. No cloud, no account, no API keys, and **your audio
+never leaves your machine.**
 
-Built for Apple Silicon: transcription runs on the GPU via **MLX-Whisper**
-(`large-v3-turbo`), typically **10–20× faster than real time**, so a few seconds
-of speech lands almost instantly.
+**Now cross-platform.** Local Dictation runs on:
+
+- **macOS — Apple Silicon** (M1+): transcription on the GPU via **MLX-Whisper**
+  (`large-v3-turbo`), typically **10–20× faster than real time**.
+- **macOS — Intel** and **Windows**: transcription on the CPU via
+  **faster-whisper** (CTranslate2).
+
+A built-in **dashboard** (recent transcriptions, total words, "time saved,"
+activity streaks) is available from the app — all powered by a local-only
+history that never leaves your device.
+
+**Download:** get the right build for your machine at **https://local-transcription-tool.vercel.app**.
+
+### Privacy & legal
+
+This product's entire identity is privacy: audio is transcribed on-device and
+discarded, and the only thing that ever goes over the network is an optional
+update check (app version + OS + CPU arch, nothing else — disable with
+`DICTATE_NO_UPDATE_CHECK=1`).
+
+- [Privacy Policy](legal/privacy.md)
+- [Terms of Use](legal/terms.md)
+- [Security Policy](SECURITY.md) — note: current builds are **unsigned**; see it
+  for how to open them and verify download checksums.
+- [Contributing](CONTRIBUTING.md)
+- [Acknowledgements](ACKNOWLEDGEMENTS.md) · [License](LICENSE) (MIT)
+
+> **Push-to-talk key.** On **macOS** the key is **`fn` (🌐 globe)**. On
+> **Windows** there is no `fn` key that the OS exposes, so the default is
+> **Left Ctrl** (hold) — configurable via `DICTATE_HOTKEY` (e.g. `ctrl_r`,
+> `alt_r`, `f8`).
+
+The macOS Apple-Silicon experience is documented in detail below.
 
 ---
 
@@ -137,6 +168,10 @@ Everything is tunable via `DICTATE_*` environment variables — no code edits:
 
 | Variable | Default | Notes |
 |---|---|---|
+| `DICTATE_BACKEND` | `auto` | Transcription engine. `auto` prefers **MLX** on Apple Silicon and **faster-whisper** elsewhere. Force one with `mlx` or `faster-whisper`. |
+| `DICTATE_HOTKEY` | `ctrl_l` (Windows/Intel paths) | Push-to-talk key, using pynput names (`ctrl_l`, `ctrl_r`, `alt_r`, `f8`, …). On macOS Apple Silicon the native `fn`/globe key is used; this applies where the OS doesn't expose `fn`. |
+| `DICTATE_HISTORY` | `1` | Local SQLite history that powers the dashboard. Set `0` to record nothing. The history never leaves your device; clear it anytime from the dashboard. |
+| `DICTATE_NO_UPDATE_CHECK` | `0` | Set `1` to disable the optional update check entirely (the app's only network activity). |
 | `DICTATE_MODEL` | `mlx-community/whisper-large-v3-turbo` | Try `…/whisper-tiny` or `…/whisper-base` for max speed, `…/distil-whisper-large-v3` for a middle ground |
 | `DICTATE_LANGUAGE` | `en` | Set `auto` to auto-detect (slightly slower) |
 | `DICTATE_INJECT` | `paste` | `type` to emit keystrokes instead (for apps that block paste) |
@@ -186,6 +221,20 @@ asserts the words come back — no microphone or permissions needed.
 
 ## Requirements
 
+**macOS — Apple Silicon (fastest, GPU via MLX):**
+
 - Apple Silicon Mac (M1 or newer)
 - macOS 13+
 - Python 3.10+
+
+**macOS — Intel** and **Windows** (CPU via faster-whisper):
+
+- Intel Mac (macOS 13+) or Windows 10/11 (x64)
+- Python 3.10+
+- On Windows, the WebView2 runtime used by the dashboard ships with Windows
+  10/11.
+
+Use the requirements file for your platform: `requirements.txt` (Apple
+Silicon), `requirements-macos-intel.txt` (Intel Mac), or
+`requirements-windows.txt` (Windows). Shared deps live in
+`requirements-base.txt`.

@@ -38,15 +38,35 @@ def _env_bool(name: str, default: bool) -> bool:
 
 @dataclass(frozen=True)
 class Config:
+    # --- Transcription backend -------------------------------------------
+    # "auto" prefers MLX on Apple Silicon and faster-whisper everywhere else.
+    # Force one with DICTATE_BACKEND=mlx | faster-whisper.
+    backend: str = field(default_factory=lambda: _env("BACKEND", "auto"))
+
     # --- Transcription model ---------------------------------------------
-    # large-v3-turbo is the sweet spot on Apple Silicon: near large-v3 quality
-    # at a fraction of the compute. Swap to whisper-tiny/base for max speed or
-    # distil-large for a middle ground via the DICTATE_MODEL env var.
-    model: str = field(default_factory=lambda: _env("MODEL", "mlx-community/whisper-large-v3-turbo"))
+    # MLX (Apple Silicon): large-v3-turbo is the sweet spot — near large-v3
+    # quality at a fraction of the compute. Try …/whisper-base for max speed.
+    mlx_model: str = field(default_factory=lambda: _env("MLX_MODEL", "mlx-community/whisper-large-v3-turbo"))
+    # faster-whisper (Windows / Intel / CUDA): "auto" picks small.en on CPU and
+    # large-v3-turbo on CUDA. Override with any faster-whisper model name/path.
+    fw_model: str = field(default_factory=lambda: _env("FW_MODEL", "auto"))
+    fw_device: str = field(default_factory=lambda: _env("FW_DEVICE", "auto"))   # auto|cpu|cuda
+    fw_compute_type: str = field(default_factory=lambda: _env("FW_COMPUTE", ""))  # "" = auto
 
     # Forcing a language skips Whisper's language-detection pass (faster). Set to
     # "" / "auto" to let the model detect it.
     language: str = field(default_factory=lambda: _env("LANGUAGE", "en"))
+
+    # --- Push-to-talk key -------------------------------------------------
+    # macOS uses the fn/globe key (handled natively). On Windows fn emits no OS
+    # event, so we default to Left Ctrl (hold). Configurable via DICTATE_HOTKEY
+    # using pynput key names: ctrl_l, ctrl_r, alt_r, f8, …
+    hotkey: str = field(default_factory=lambda: _env("HOTKEY", "ctrl_l"))
+
+    # --- History ----------------------------------------------------------
+    # Local-only SQLite history of transcriptions that powers the dashboard.
+    # Set DICTATE_HISTORY=0 to record nothing.
+    save_history: bool = field(default_factory=lambda: _env_bool("HISTORY", True))
 
     # --- Audio capture ----------------------------------------------------
     # 16 kHz mono is Whisper's native rate, so capturing there avoids a resample.
@@ -81,6 +101,11 @@ class Config:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "language", "" if self.language.lower() in {"auto", ""} else self.language)
+
+    @property
+    def model(self) -> str:
+        """Back-compat alias used by the macOS UI; the active model is the MLX one there."""
+        return self.mlx_model
 
 
 CONFIG = Config()

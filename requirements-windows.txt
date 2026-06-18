@@ -1,0 +1,12 @@
+# Windows runtime deps.
+#
+# Cross-platform deps live in requirements-base.txt; this file pulls them in plus
+# the CTranslate2 transcription engine (faster-whisper), the keyboard hook, and
+# the system-tray bits. WebView2 (used by pywebview) ships with Windows 10/11.
+-r requirements-base.txt
+
+faster-whisper==1.1.1
+pynput==1.7.7
+pystray==0.19.5
+Pillow==11.1.0
+pywin32==308

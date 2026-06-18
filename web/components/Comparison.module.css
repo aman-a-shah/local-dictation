@@ -1,0 +1,74 @@
+.scroll { overflow-x: auto; }
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 620px;
+}
+.table th,
+.table td {
+  padding: var(--space-4) var(--space-4);
+  text-align: center;
+  border-bottom: 1px solid var(--line);
+}
+.table thead th {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--muted);
+  font-weight: 500;
+  vertical-align: bottom;
+  border-bottom: 1px solid var(--line-strong);
+}
+.featureHead { width: 38%; }
+.rowHead {
+  text-align: left;
+  font-weight: 500;
+  color: var(--ink);
+  font-size: var(--text-sm);
+}
+.ownCol {
+  background: var(--accent-soft);
+  position: relative;
+}
+.table thead .ownCol {
+  color: var(--ink-strong);
+  font-weight: 700;
+  border-top-left-radius: var(--radius);
+  border-top-right-radius: var(--radius);
+}
+.table tbody tr:last-child .ownCol {
+  border-bottom-left-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
+}
+.ownBadge {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.62rem;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--gold-ink-strong);
+}
+.yes {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6em;
+  height: 1.6em;
+  border-radius: var(--radius-full);
+  background: var(--gold-sheen);
+  color: var(--on-accent);
+  box-shadow: var(--shadow-sm);
+}
+.no {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6em;
+  height: 1.6em;
+  color: var(--faint);
+}
+.partial {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}

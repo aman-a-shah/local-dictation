@@ -1,0 +1,7 @@
+# Cross-platform runtime deps shared by every OS build.
+sounddevice==0.5.5
+numpy==2.4.6
+scipy==1.17.1
+platformdirs==4.3.6
+pywebview==5.4
+pyperclip==1.9.0

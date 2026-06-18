@@ -1,0 +1,12 @@
+# Intel-Mac (x86_64) runtime deps.
+#
+# Same native macOS UI as Apple Silicon (pyobjc works on Intel), but MLX is
+# Apple-Silicon-only, so transcription uses faster-whisper (CPU) instead.
+-r requirements-base.txt
+
+faster-whisper==1.1.1
+
+pyobjc-framework-Quartz==12.2
+pyobjc-framework-Cocoa==12.2
+pyobjc-framework-AVFoundation==12.2
+pyobjc-framework-ApplicationServices==12.2

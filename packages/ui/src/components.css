@@ -1,0 +1,186 @@
+/* Shared component classes for the website + dashboard. Import after tokens.css.
+ * White / black / metallic-gold. Gradients used ONLY as gold material (sheen),
+ * never as decorative text. */
+
+/* ---- Button --------------------------------------------------------- */
+.ld-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0.7rem 1.2rem;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  font-weight: 600;
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-tight);
+  line-height: 1;
+  overflow: hidden;
+  transition: transform var(--dur-fast) var(--ease-out),
+    background var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
+  white-space: nowrap;
+}
+.ld-btn:active { transform: translateY(1px) scale(0.99); }
+
+.ld-btn--primary {
+  background: var(--gold-sheen);
+  color: var(--on-accent);
+  border-color: oklch(0.7 0.12 80 / 0.5);
+  box-shadow: var(--shadow-gold), inset 0 1px 0 oklch(1 0 0 / 0.45);
+}
+.ld-btn--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg), inset 0 1px 0 oklch(1 0 0 / 0.55);
+}
+/* Periodic shine sweep — a highlight crosses the metal, rests off-screen, then
+   repeats. Loops seamlessly because both ends sit fully off the element. */
+.ld-btn--primary::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 55%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, oklch(1 0 0 / 0.6), transparent);
+  transform: translateX(-200%) skewX(-20deg);
+  animation: ld-sweep 5.5s var(--ease-out-quart) infinite;
+  pointer-events: none;
+}
+.ld-btn--primary:hover::after { animation-duration: 2.2s; }
+
+/* Gentle shine for small gold accents (a highlight band passing over). The
+   highlight travels off-screen at both ends, so the loop has no visible seam. */
+.ld-shimmer { position: relative; overflow: hidden; isolation: isolate; }
+.ld-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 38%, oklch(1 0 0 / 0.55) 50%, transparent 62%);
+  transform: translateX(-180%);
+  animation: ld-glint 6s var(--ease-out-quart) infinite;
+  pointer-events: none;
+}
+
+@keyframes ld-sweep {
+  0% { transform: translateX(-200%) skewX(-20deg); }
+  18% { transform: translateX(320%) skewX(-20deg); }
+  100% { transform: translateX(320%) skewX(-20deg); }
+}
+@keyframes ld-glint {
+  0% { transform: translateX(-180%); }
+  22% { transform: translateX(180%); }
+  100% { transform: translateX(180%); }
+}
+
+.ld-btn--ghost {
+  background: var(--surface);
+  border-color: var(--line-strong);
+  color: var(--ink-strong);
+}
+.ld-btn--ghost:hover {
+  border-color: var(--gold-deep);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+.ld-btn--lg { padding: 0.95rem 1.7rem; font-size: var(--text-base); }
+.ld-btn--block { width: 100%; }
+
+/* On dark sections */
+.ld-on-dark .ld-btn--ghost {
+  background: oklch(1 0 0 / 0.04);
+  border-color: var(--line-on-dark);
+  color: var(--on-dark);
+}
+.ld-on-dark .ld-btn--ghost:hover { border-color: var(--gold); }
+
+/* ---- Keycap --------------------------------------------------------- */
+.ld-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2em;
+  padding: 0.18em 0.55em;
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  font-weight: 500;
+  color: var(--ink-strong);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-bottom-width: 2px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  line-height: 1.4;
+}
+.ld-on-dark .ld-kbd {
+  color: var(--on-dark);
+  background: oklch(1 0 0 / 0.06);
+  border-color: var(--line-on-dark);
+}
+
+/* ---- Kicker (deliberate, not on every section) --------------------- */
+.ld-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--muted);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+.ld-tag__dot {
+  width: 7px; height: 7px;
+  border-radius: var(--radius-full);
+  background: var(--gold-sheen);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* ---- Stat ----------------------------------------------------------- */
+.ld-stat__num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--ink-strong);
+}
+.ld-stat__label { color: var(--muted); font-size: var(--text-sm); }
+.ld-on-dark .ld-stat__num { color: var(--on-dark); }
+.ld-on-dark .ld-stat__label { color: var(--muted-on-dark); }
+
+/* ---- Card ----------------------------------------------------------- */
+.ld-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---- Reveal --------------------------------------------------------- */
+.ld-reveal { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .ld-reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity var(--dur-slow) var(--ease-out),
+      transform var(--dur-slow) var(--ease-out);
+    transition-delay: var(--reveal-delay, 0ms);
+    will-change: opacity, transform;
+  }
+  .ld-reveal.is-in { opacity: 1; transform: none; }
+}
+
+/* Gold check glyph */
+.ld-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15em; height: 1.15em;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  background: var(--accent-soft);
+  color: var(--gold-ink);
+}
+.ld-on-dark .ld-check { color: var(--gold); }
