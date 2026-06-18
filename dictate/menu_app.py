@@ -202,10 +202,14 @@ class DictationController(NSObject):
                 "(toggle it ON), then quit and relaunch the app.",
             )
 
-        self.hotkey = FnHotkey(self.engine.on_press, self.engine.on_release)
+        self.hotkey = FnHotkey(self.engine.on_press, self.engine.on_release, log=_log)
         try:
-            self.hotkey.install()
-            _log("fn hotkey installed — ready to dictate")
+            # Run the tap on its own thread/run loop, not the main one — the main
+            # run loop drives the 60 fps overlay, and sharing it lets that drawing
+            # starve the tap so macOS disables it and drops fn presses/releases
+            # (the intermittent "chopped into empty fragments" failure).
+            self.hotkey.start_background()
+            _log("fn hotkey installed on dedicated thread — ready to dictate")
         except PermissionError as exc:
             _log(f"BLOCKED: {exc}")
             self._show_state("blocked", "Needs Accessibility permission")
