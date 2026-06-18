@@ -12,7 +12,7 @@ from typing import Optional
 
 from .config import CONFIG
 from .core import DictationEngine
-from .hotkey import FnHotkey
+from .platforms import hotkey_label, make_hotkey
 
 _CLEAR = "\r" + " " * 60 + "\r"
 
@@ -35,16 +35,19 @@ def _render(state: str, info: Optional[dict]) -> None:
 class DictationApp:
     def __init__(self) -> None:
         self.engine = DictationEngine(on_state=_render)
-        self._hotkey = FnHotkey(self.engine.on_press, self.engine.on_release)
+        self._hotkey = make_hotkey(
+            self.engine.on_press, self.engine.on_release, on_cancel=self.engine.cancel
+        )
 
     def run(self) -> None:
-        print(f"Loading model: {CONFIG.model}", flush=True)
+        print(f"Loading model: {self.engine.transcriber.model_name}", flush=True)
         elapsed = self.engine.warmup()
         print(f"Model ready in {elapsed:0.1f}s.\n", flush=True)
+        key = hotkey_label()
         print(
             "┌──────────────────────────────────────────────┐\n"
-            "│  Hold  fn (🌐)  and speak. Release to insert.  │\n"
-            "│  Press Ctrl-C in this window to quit.          │\n"
+            f"│  Hold  {key}  and speak. Release to insert.\n"
+            "│  Press Ctrl-C in this window to quit.\n"
             "└──────────────────────────────────────────────┘\n",
             flush=True,
         )

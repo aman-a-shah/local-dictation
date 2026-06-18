@@ -125,6 +125,11 @@ class DictationController(NSObject):
         menu.addItem_(self.lastItem)
         menu.addItem_(NSMenuItem.separatorItem())
 
+        dashboard_item = self._item("Open Dashboard…", "openDashboard:")
+        dashboard_item.setKeyEquivalent_("d")
+        menu.addItem_(dashboard_item)
+        menu.addItem_(NSMenuItem.separatorItem())
+
         hint = self._item(f"Model: {CONFIG.model.split('/')[-1]}", None)
         menu.addItem_(hint)
         menu.addItem_(NSMenuItem.separatorItem())
@@ -295,6 +300,11 @@ class DictationController(NSObject):
         alert.runModal()
 
     # -- menu actions -------------------------------------------------------
+    def openDashboard_(self, _):  # noqa: N802
+        from .launch import open_dashboard
+
+        open_dashboard()
+
     def quitApp_(self, _):  # noqa: N802
         try:
             self.engine.shutdown()
