@@ -101,6 +101,36 @@ Speed comes from a few deliberate choices, all in `dictate/`:
 
 ---
 
+## Smart formatting (polish)
+
+Transcripts get a fast, rule-based cleanup pass before they're inserted. It's
+pure regex (~tens of microseconds), so it adds **no perceptible latency** — the
+text appears just as fast as before.
+
+Right now it turns spoken enumerations into lists. Say:
+
+> "my grocery list is milk, cheese, and bananas"
+
+and you get:
+
+```
+my grocery list:
+1. milk
+2. cheese
+3. bananas
+```
+
+It recognises two patterns, both deliberately conservative so normal prose is
+never mangled:
+
+- a lead-in with a list word ("list", "steps", "ingredients", "to-dos", …)
+  joined to comma-separated items by `:` / "is" / "are" / "includes"
+- ordinal enumerations ("first … second … third …")
+
+Ordinary sentences like *"I went to the store and bought milk, cheese, and
+bread"* are left exactly as-is. Toggle with `DICTATE_POLISH=0`, switch to bullets
+with `DICTATE_LIST_STYLE=bullet`.
+
 ## Configuration
 
 Everything is tunable via `DICTATE_*` environment variables — no code edits:
@@ -113,6 +143,9 @@ Everything is tunable via `DICTATE_*` environment variables — no code edits:
 | `DICTATE_APPEND_SPACE` | `1` | Add a trailing space after each insert |
 | `DICTATE_RESTORE_CLIPBOARD` | `1` | Restore your clipboard after pasting |
 | `DICTATE_SOUND` | `1` | Audio cues on/off |
+| `DICTATE_POLISH` | `1` | Smart formatting (spoken lists → real lists) |
+| `DICTATE_LIST_STYLE` | `numbered` | `bullet` for `- item` instead of `1. item` |
+| `DICTATE_MIN_LIST_ITEMS` | `2` | Min items before reformatting as a list |
 | `DICTATE_MIN_SECONDS` | `0.30` | Ignore taps shorter than this |
 | `DICTATE_MAX_SECONDS` | `120` | Safety cap on a single take |
 

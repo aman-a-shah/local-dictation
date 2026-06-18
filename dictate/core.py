@@ -28,6 +28,7 @@ from .audio import Recorder
 from .config import CONFIG
 from .feedback import Feedback
 from .injector import inject
+from .polish import polish
 from .transcriber import Transcriber
 
 StateCallback = Callable[[str, Optional[dict]], None]
@@ -95,13 +96,19 @@ class DictationEngine:
             self._emit("idle")
             return
 
-        elapsed = time.monotonic() - t0
-        _dlog(f"transcribed in {elapsed:0.2f}s -> {text!r}")
         if not text:
+            elapsed = time.monotonic() - t0
+            _dlog(f"transcribed in {elapsed:0.2f}s -> {text!r}")
             self.feedback.error()
             self._emit("empty")
             self._emit("idle")
             return
+
+        # Polish is pure regex (sub-millisecond); include it in the timed window
+        # so the log reflects the true time-to-paste.
+        text = polish(text)
+        elapsed = time.monotonic() - t0
+        _dlog(f"transcribed+polished in {elapsed:0.2f}s -> {text!r}")
 
         inject(text)
         self.feedback.done()

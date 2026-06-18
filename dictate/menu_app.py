@@ -33,6 +33,7 @@ from Foundation import NSObject
 from .config import CONFIG
 from .core import DictationEngine
 from .hotkey import FnHotkey
+from .overlay import Overlay
 
 _LOG_PATH = os.path.expanduser("~/Library/Logs/LocalDictation.log")
 
@@ -67,6 +68,7 @@ class DictationController(NSObject):
         self.stateItem = None
         self.lastItem = None
         self.hotkey = None
+        self.overlay = None
         self._pending = []  # (state, info) queued from worker threads
         self._pending_lock = threading.Lock()
         return self
@@ -95,6 +97,12 @@ class DictationController(NSObject):
         menu.addItem_(quit_item)
 
         self.statusItem.setMenu_(menu)
+
+        # Heads-up voice overlay that drops from the camera notch while you hold fn.
+        self.overlay = Overlay.alloc().initWithLevelProvider_(
+            lambda: self.engine.recorder.level
+        )
+        self.overlay.build()
 
     @objc.python_method
     def _item(self, title, action):
@@ -197,19 +205,27 @@ class DictationController(NSObject):
             self._show_state("ready", "Ready — hold fn (🌐) to dictate")
         elif state == "listening":
             self._show_state("listening", "Listening…")
+            if self.overlay is not None:
+                self.overlay.show()
         elif state == "transcribing":
             self._show_state("transcribing", f"Transcribing {float(g('duration', 0)):0.1f}s…")
+            if self.overlay is not None:
+                self.overlay.set_mode("thinking")
         elif state == "result":
             text = str(g("text", ""))
             elapsed = float(g("elapsed", 0))
             self.lastItem.setTitle_(f"Last: “{_truncate(text)}”  ({elapsed:0.1f}s)")
             self._show_state("ready", "Inserted ✓")
+            if self.overlay is not None:
+                self.overlay.set_mode("done")  # brief green confirm before it retracts
         elif state == "empty":
             self._show_state("ready", "Nothing recognized")
         elif state == "error":
             self._show_state("error", f"Error: {_truncate(str(g('error', '')))}")
         elif state == "idle":
             self._glyph("ready")  # leave the status line on its last message
+            if self.overlay is not None:
+                self.overlay.hide()
 
     @objc.python_method
     def _show_state(self, glyph_key, message):

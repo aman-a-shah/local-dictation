@@ -28,19 +28,31 @@ class Recorder:
         self._recording = False
         self._max_frames = int(CONFIG.max_record_seconds * CONFIG.sample_rate)
         self._collected = 0
+        # Live RMS of the most recent block, for the visual overlay to react to.
+        # Written on the audio thread, read (best-effort) on the UI thread; a
+        # float assignment is atomic in CPython, so no lock is needed for it.
+        self._level = 0.0
+
+    @property
+    def level(self) -> float:
+        """Loudness (RMS, ~0..0.3) of the latest captured block; 0 when idle."""
+        return self._level
 
     # -- PortAudio callback (runs on a dedicated high-priority thread) ------
     def _callback(self, indata, frames, time_info, status) -> None:  # noqa: ANN001
         if status:
             # Overflows are non-fatal; just note them on stderr via print.
             print(f"[audio] {status}", flush=True)
+        block = indata[:, 0]
+        # Cheap loudness read for the overlay; fine to compute outside the lock.
+        self._level = float(np.sqrt(np.mean(block * block))) if frames else 0.0
         with self._lock:
             if not self._recording:
                 return
             if self._collected >= self._max_frames:
                 return
             # Copy: PortAudio reuses the buffer after the callback returns.
-            self._frames.append(indata[:, 0].copy())
+            self._frames.append(block.copy())
             self._collected += frames
 
     # -- Control ------------------------------------------------------------
@@ -68,6 +80,7 @@ class Recorder:
         """Stop capture and return (audio float32 @16k, duration seconds)."""
         with self._lock:
             self._recording = False
+            self._level = 0.0
             duration = time.monotonic() - self._start_time
             frames = self._frames
             self._frames = []

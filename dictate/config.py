@@ -22,6 +22,13 @@ def _env_float(name: str, default: float) -> float:
         return default
 
 
+def _env_int(name: str, default: int) -> int:
+    try:
+        return int(os.environ.get(f"DICTATE_{name}", default))
+    except (TypeError, ValueError):
+        return default
+
+
 def _env_bool(name: str, default: bool) -> bool:
     raw = os.environ.get(f"DICTATE_{name}")
     if raw is None:
@@ -62,6 +69,15 @@ class Config:
 
     # --- Feedback ---------------------------------------------------------
     sound_feedback: bool = field(default_factory=lambda: _env_bool("SOUND", True))
+
+    # --- Post-processing (polish) ----------------------------------------
+    # Fast, deterministic cleanup of the transcript (regex only — adds no
+    # perceptible latency). Currently: turn spoken enumerations into lists.
+    polish: bool = field(default_factory=lambda: _env_bool("POLISH", True))
+    # "numbered" -> "1. milk" ; "bullet" -> "- milk"
+    list_style: str = field(default_factory=lambda: _env("LIST_STYLE", "numbered"))
+    # Minimum items before an enumeration is reformatted as a list.
+    min_list_items: int = field(default_factory=lambda: _env_int("MIN_LIST_ITEMS", 2))
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "language", "" if self.language.lower() in {"auto", ""} else self.language)
