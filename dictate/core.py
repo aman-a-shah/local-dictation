@@ -26,6 +26,7 @@ import numpy as np
 
 from .audio import Recorder
 from .backends import create_transcriber
+from .backends.base import has_speech
 from .config import CONFIG
 from .platforms import Feedback, inject
 from .polish import polish
@@ -154,6 +155,18 @@ class DictationEngine:
             peak = float(np.abs(audio).max()) if audio.size else 0.0
             _dlog(f"release: {audio.size} samples, {duration:0.2f}s, rms={rms:0.4f}, peak={peak:0.4f}")
             if duration < CONFIG.min_record_seconds or audio.size == 0:
+                self._emit("empty")
+                self._emit("idle")
+                return
+            # Held the key but said nothing: skip the model entirely. Running
+            # Whisper on a silent clip costs 1.5-5 s (it amplifies the room tone
+            # and hallucinates a stock phrase we then discard) — and on an idle
+            # model the real decode also waits behind the warm-up prime. The gate
+            # keys off the clip's own dynamic range, so a genuine quiet word still
+            # passes through; only clear silence is short-circuited.
+            if not has_speech(audio, CONFIG.sample_rate):
+                _dlog(f"no speech (silent clip, rms={rms:0.4f}) — skipping transcription")
+                self.feedback.error()
                 self._emit("empty")
                 self._emit("idle")
                 return

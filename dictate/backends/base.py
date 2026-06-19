@@ -52,6 +52,36 @@ def trim_silence(audio: np.ndarray, sample_rate: int) -> np.ndarray:
     return audio[start:end]
 
 
+def has_speech(audio: np.ndarray, sample_rate: int) -> bool:
+    """Fast pre-check: does this clip contain any speech at all?
+
+    The expensive path is running Whisper on a *silent* clip — `normalize`
+    amplifies the room tone up to 50x and the greedy decoder then spends 1.5-5 s
+    hallucinating a stock phrase ("Thank you.") that we throw away. So when the
+    user holds the key but says nothing, we want to skip the model entirely.
+
+    The test is the clip's **own dynamic range**, never an absolute level:
+    speech makes the loudest 20 ms window tower over the clip's noise floor (the
+    quietest windows — inter-word gaps, pre-roll, the release tail), whereas
+    stationary room tone has almost no spread (loudest window ~1-2x the floor).
+    Being scale-invariant, it's correct for a very quiet mic, where any fixed
+    threshold would wrongly discard real speech. The ratio bar (2.5x) sits far
+    below speech's typical 5-10x and well above room tone, so it only ever fires
+    on clear silence — a borderline clip still falls through to Whisper.
+    """
+    if audio.size == 0:
+        return False
+    win = max(1, sample_rate // 50)  # 20 ms windows
+    n_windows = audio.size // win
+    if n_windows < 3:
+        return True  # too short to judge the dynamic range — let the model decide
+    w = audio[: n_windows * win].reshape(n_windows, win)
+    rms = np.sqrt(np.mean(w**2, axis=1) + 1e-9)
+    noise = float(np.percentile(rms, 10))  # the clip's own noise floor
+    peak = float(rms.max())
+    return peak > noise * 2.5 + 1e-6  # +eps: digital silence (peak==noise==~0) -> False
+
+
 def normalize(audio: np.ndarray, target_rms: float = 0.08, max_gain: float = 50.0) -> np.ndarray:
     """Bring a quiet capture up to a healthy loudness before transcription.
 
