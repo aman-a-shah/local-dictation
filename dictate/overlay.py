@@ -39,7 +39,13 @@ from AppKit import (
     NSWindowStyleMaskBorderless,
     NSWindowStyleMaskNonactivatingPanel,
 )
-from Foundation import NSMakeRect, NSObject, NSTimer
+from Foundation import (
+    NSMakeRect,
+    NSObject,
+    NSRunLoop,
+    NSRunLoopCommonModes,
+    NSTimer,
+)
 
 # -- Geometry (points) --------------------------------------------------------
 # Everything scales off _SCALE, so resizing the whole bar is a one-line change.
@@ -56,15 +62,22 @@ _GAP_UNDER_NOTCH = 6.0          # breathing room between the notch and the bar
 _SLIDE = _BAR_H + _GAP_UNDER_NOTCH  # how far it travels on show/hide
 
 # -- Reactivity tuning --------------------------------------------------------
-# An adaptive noise floor learns the ambient level (whatever your mic/room is)
-# and the bars react only to what rises clearly above it — so steady background
-# noise produces no motion, only actual talking does.
+# Two ideas work together so the bars react satisfyingly to ANY mic, quiet or
+# loud, and adapt to your voice in real time:
+#   1. An adaptive noise floor learns the ambient level and gates it out, so
+#      steady background noise produces no motion — only talking does.
+#   2. Automatic gain control (AGC): the gated signal is normalised against a
+#      decaying envelope of its own recent peak, so a whisper and a shout both
+#      fill the bars, and the response re-ranges as your volume changes. The old
+#      design used a FIXED gain + absolute gate calibrated for a close mic, which
+#      meant a quiet/far mic fell entirely below the gate and the bars never moved.
 _NOISE_FALL = 0.5      # floor tracks *down* fast (re-learns a quieter room)
-_NOISE_RISE = 0.01     # floor tracks *up* slowly (so speech can't raise it much)
-_FLOOR_MULT = 2.2      # react only above ambient × this margin
-_GATE_MIN = 0.012      # absolute floor too, for very quiet rooms
-_GAIN = 48.0           # speech RMS is tiny; scale it up into 0..1
-_CURVE = 1.12          # >1 keeps near-floor sounds tiny so only real talking climbs
+_NOISE_RISE = 0.01     # floor creeps *up* slowly, and only when you're not talking
+_GATE_RATIO = 1.5      # raw must exceed the floor by this factor to count as voice
+_ABS_GATE = 0.0004     # below this absolute RMS, treat as dead silence (no motion)
+_PEAK_DECAY = 0.99     # AGC reference eases down (~halves in ~0.7 s at 60 fps)
+_MIN_PEAK = 0.0008     # smallest AGC reference, so even a quiet voice fills the bars
+_CURVE = 0.7           # <1 expands mid-levels so the bars pop instead of sitting low
 _ATTACK = 0.6          # how fast a stick jumps up toward a louder target
 _DECAY = 0.22          # how slowly it falls back (smoother than the rise)
 _SCROLL_DT = 0.045     # seconds between history samples (waveform scroll speed)
@@ -154,7 +167,8 @@ class Overlay(NSObject):
         # newest sample spikes the center and ripples outward as you speak.
         self._history = [0.0] * (_N_BARS // 2 + 1)
         self._last_scroll = 0.0
-        self._floor = 0.08  # adaptive ambient-noise estimate (starts high -> calm)
+        self._floor = 0.01      # adaptive ambient-noise estimate (settles fast)
+        self._peak_env = 0.0    # AGC: decaying envelope of recent voice peak
         return self
 
     # -- construction --------------------------------------------------------
@@ -189,9 +203,35 @@ class Overlay(NSObject):
         panel.setAlphaValue_(0.0)
 
     @objc.python_method
+    def _pick_screen(self):
+        """The screen the bar should drop from — the notched built-in if present.
+
+        ``NSScreen.mainScreen()`` is "the screen with the key window", which for a
+        windowless accessory app can be None or an external display, leaving the
+        bar placed off-screen ("the overlay doesn't appear"). Prefer the screen
+        that actually has a notch/menu-bar inset, then the primary screen, then
+        mainScreen — and return None only if there are genuinely no screens.
+        """
+        screens = NSScreen.screens()
+        if screens:
+            for screen in screens:
+                try:
+                    if screen.safeAreaInsets().top > 0:
+                        return screen  # the notched built-in display
+                except AttributeError:
+                    pass
+            return screens[0]  # primary screen (owns the menu bar)
+        return NSScreen.mainScreen()
+
+    @objc.python_method
     def _recompute_geometry(self):
-        """Place the bar centered under the notch on whatever screen is active."""
-        screen = NSScreen.mainScreen()
+        """Place the bar centered under the notch on whatever screen is active.
+
+        Leaves the previous geometry untouched if no screen is available, so a
+        transient None (display asleep / mid-reconfiguration) can't park the bar
+        at the origin where it would never be seen.
+        """
+        screen = self._pick_screen()
         if screen is None:
             return
         frame = screen.frame()
@@ -216,7 +256,10 @@ class Overlay(NSObject):
         self._recompute_geometry()
         self._mode = "listening"
         self._history = [0.0] * len(self._history)  # start the waveform flat
-        self._floor = 0.08  # re-prime high so it can't react until ambient is learned
+        self._peak_env = 0.0  # re-range the AGC fresh for this utterance
+        # Keep the learned ambient floor between takes (the room hasn't changed),
+        # so the bars react from the very first syllable instead of sitting dead
+        # while a re-primed floor settles.
         self._visible = True
         self._target_y = self._final_y
         self._target_alpha = 1.0
@@ -242,9 +285,14 @@ class Overlay(NSObject):
     def _start_timer(self):
         if self._timer is not None or self._panel is None:
             return
-        self._timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
+        # Add the timer in *common* modes so it keeps ticking even while the run
+        # loop is in a tracking mode (e.g. the status-bar menu is open); a plain
+        # scheduled timer only runs in the default mode and would freeze the
+        # waveform mid-interaction.
+        self._timer = NSTimer.timerWithTimeInterval_target_selector_userInfo_repeats_(
             1.0 / 60.0, self, "tick:", None, True
         )
+        NSRunLoop.currentRunLoop().addTimer_forMode_(self._timer, NSRunLoopCommonModes)
 
     @objc.python_method
     def _stop_timer(self):
@@ -291,14 +339,24 @@ class Overlay(NSObject):
                 raw = float(self._level_provider())
             except Exception:
                 raw = 0.0
-            # Learn the ambient noise floor: drop toward it fast, rise slowly so
-            # sustained talking can't drag the threshold up with it.
-            rate = _NOISE_FALL if raw < self._floor else _NOISE_RISE
-            self._floor += (raw - self._floor) * rate
-            # React only to what clearly exceeds ambient -> background = no motion.
-            thresh = max(_GATE_MIN, self._floor * _FLOOR_MULT)
-            gated = max(0.0, raw - thresh)
-            level = min(1.0, (gated * _GAIN) ** _CURVE) if gated > 0.0 else 0.0
+            # Is this voice, or just the room? Voice is clearly above the floor.
+            gate_on = raw > max(_ABS_GATE, self._floor * _GATE_RATIO)
+            # Learn the ambient noise floor: drop toward it fast; let it creep up
+            # only while you're NOT talking, so speech can't drag the gate up.
+            if raw < self._floor:
+                self._floor += (raw - self._floor) * _NOISE_FALL
+            elif not gate_on:
+                self._floor += (raw - self._floor) * _NOISE_RISE
+            # The part of the signal above the ambient floor (0 when not voicing).
+            signal = max(0.0, raw - self._floor) if gate_on else 0.0
+            # AGC: snap the reference up to a new peak, ease it down otherwise, so
+            # the bars auto-range to however loud you actually are right now.
+            if signal > self._peak_env:
+                self._peak_env = signal
+            else:
+                self._peak_env *= _PEAK_DECAY
+            ref = max(self._peak_env, _MIN_PEAK)
+            level = min(1.0, (signal / ref) ** _CURVE) if signal > 0.0 else 0.0
 
             # Scroll the loudness history outward from the center at a fixed rate
             # (independent of frame rate) so the waveform reads as *your* voice.

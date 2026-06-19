@@ -34,44 +34,34 @@
   transform: translateY(-1px);
   box-shadow: var(--shadow-lg), inset 0 1px 0 oklch(1 0 0 / 0.55);
 }
-/* Periodic shine sweep — a highlight crosses the metal, rests off-screen, then
-   repeats. Loops seamlessly because both ends sit fully off the element. */
-.ld-btn--primary::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 55%;
-  height: 100%;
-  background: linear-gradient(100deg, transparent, oklch(1 0 0 / 0.6), transparent);
-  transform: translateX(-200%) skewX(-20deg);
-  animation: ld-sweep 5.5s var(--ease-out-quart) infinite;
-  pointer-events: none;
-}
-.ld-btn--primary:hover::after { animation-duration: 2.2s; }
-
-/* Gentle shine for small gold accents (a highlight band passing over). The
-   highlight travels off-screen at both ends, so the loop has no visible seam. */
-.ld-shimmer { position: relative; overflow: hidden; isolation: isolate; }
+/* A highlight that scrolls continuously across the metal.
+   The gradient is transparent at both edges and TILES (background-repeat), and
+   the animation shifts it by EXACTLY one tile width (220px). Shifting a repeating
+   pattern by one full period yields an identical frame, so the loop is perfectly
+   seamless — constant speed, no jump, no pause. */
+.ld-btn--primary::after,
 .ld-shimmer::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(100deg, transparent 38%, oklch(1 0 0 / 0.55) 50%, transparent 62%);
-  transform: translateX(-180%);
-  animation: ld-glint 6s var(--ease-out-quart) infinite;
+  background-image: linear-gradient(
+    105deg,
+    transparent 44%,
+    oklch(1 0 0 / 0.5) 50%,
+    transparent 56%
+  );
+  background-repeat: repeat;
+  background-size: 220px 100%;
+  animation: ld-shine 4.5s linear infinite;
   pointer-events: none;
 }
+.ld-shimmer::after { opacity: 0.8; }
 
-@keyframes ld-sweep {
-  0% { transform: translateX(-200%) skewX(-20deg); }
-  18% { transform: translateX(320%) skewX(-20deg); }
-  100% { transform: translateX(320%) skewX(-20deg); }
-}
-@keyframes ld-glint {
-  0% { transform: translateX(-180%); }
-  22% { transform: translateX(180%); }
-  100% { transform: translateX(180%); }
+.ld-shimmer { position: relative; overflow: hidden; isolation: isolate; }
+
+@keyframes ld-shine {
+  from { background-position: 0 0; }
+  to   { background-position: -220px 0; }
 }
 
 .ld-btn--ghost {

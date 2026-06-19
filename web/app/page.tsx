@@ -87,7 +87,7 @@ export default async function Home() {
       </Reveal>
 
       {/* ---- Privacy band (BLACK) ---- */}
-      <section className={`${styles.privacy} ld-on-dark ld-grain`}>
+      <section id="privacy" className={`${styles.privacy} ld-on-dark ld-grain`}>
         <div className="container">
           <div className={styles.privacyGrid}>
             <Reveal>

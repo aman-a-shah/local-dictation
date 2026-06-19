@@ -149,6 +149,8 @@ html {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Keep anchor targets (#how, #privacy) clear of the sticky nav. */
+  scroll-padding-top: 5rem;
 }
 
 body {

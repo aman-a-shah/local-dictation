@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-"""Generate the Local Dictation app icon: a white audio *waveform* on a violet
-squircle, rendered in the macOS Big Sur style.
+"""Generate the Local Dictation app icon: the website brand mark (packages/ui
+Logo.tsx) — a 5-bar audio *waveform* on a dark (#19191f) squircle — rendered in
+the macOS Big Sur style. Same mark as the website, except the bars are WHITE
+here instead of gold.
 
 Why Quartz (CoreGraphics) and not Pillow: the app already depends on PyObjC, so
 this adds no new dependency. We render each iconset size natively (crisper than
@@ -25,14 +27,16 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ICONSET = os.path.join(HERE, "AppIcon.iconset")
 ICNS = os.path.join(HERE, "AppIcon.icns")
 
-# Background gradient (top -> bottom): black, with a whisper of lift at the top
-# so the squircle still reads as a 3-D object rather than a flat hole.
-TOP = (0.13, 0.13, 0.13, 1.0)   # #212121
-BOTTOM = (0.0, 0.0, 0.0, 1.0)   # #000000
+# Flat squircle background, matching the website brand mark's --ink-strong.
+BG = (0.098, 0.098, 0.122, 1.0)   # #19191f
 
-# Symmetric audio-waveform bar heights as a fraction of the usable height.
-# Highest in the middle, tapering out — the classic "speaking" silhouette.
-BARS = [0.45, 0.78, 1.0, 0.78, 0.45]
+# Audio-waveform bars, identical to the website mark (packages/ui Logo.tsx):
+# bar centers + heights on a 32-unit grid. The website renders them gold; the
+# app renders them WHITE (the one intentional difference between the two marks).
+WEB_GRID = 32.0
+BAR_CENTERS = (8, 12, 16, 20, 24)   # x of each bar's center on the 32-grid
+BAR_HEIGHTS = (11, 6, 16, 8, 12)    # height of each bar on the 32-grid
+BAR_W = 2.8                          # bar width on the 32-grid (rx = BAR_W / 2)
 
 # Apple's icon grid: artwork sits inside a margin, not edge-to-edge.
 SQUIRCLE_INSET = 0.098   # fraction of the canvas on each side
@@ -55,44 +59,28 @@ def render(size: int, path: str) -> None:
     Quartz.CGContextSetShouldAntialias(ctx, True)
     Quartz.CGContextSetInterpolationQuality(ctx, Quartz.kCGInterpolationHigh)
 
-    # --- Squircle background with vertical gradient -------------------------
+    # --- Flat squircle background -------------------------------------------
     inset = size * SQUIRCLE_INSET
     side = size - 2 * inset
     radius = side * CORNER_RATIO
     squircle = _rounded_rect_path(inset, inset, side, side, radius)
 
-    Quartz.CGContextSaveGState(ctx)
     Quartz.CGContextAddPath(ctx, squircle)
-    Quartz.CGContextClip(ctx)
-    gradient = Quartz.CGGradientCreateWithColorComponents(
-        cs, [*BOTTOM, *TOP], [0.0, 1.0], 2  # comp order is bottom@0 -> top@1
-    )
-    Quartz.CGContextDrawLinearGradient(
-        ctx,
-        gradient,
-        Quartz.CGPointMake(0, inset),         # bottom
-        Quartz.CGPointMake(0, size - inset),  # top
-        0,
-    )
-    Quartz.CGContextRestoreGState(ctx)
+    Quartz.CGContextSetRGBFillColor(ctx, *BG)
+    Quartz.CGContextFillPath(ctx)
 
-    # --- White waveform bars ------------------------------------------------
-    n = len(BARS)
-    # Bars span the central ~58% of the squircle width.
-    span = side * 0.58
-    bar_w = span / (n * 1.8)         # 1.8 -> bar:gap ratio
-    gap = (span - n * bar_w) / (n - 1)
-    max_h = side * 0.62              # tallest bar height
-    cx = size / 2.0
-    cy = size / 2.0
-    start_x = cx - span / 2.0
+    # --- White waveform bars (same arrangement as the website mark) ---------
+    # Map the website's 32-unit grid onto the squircle, which spans [inset, inset+side].
+    scale = side / WEB_GRID
+    bar_w = BAR_W * scale
+    cap = bar_w / 2.0                # fully rounded bar ends (rx = width / 2)
+    cy = size / 2.0                  # bars are centered vertically, like the website
 
     Quartz.CGContextSetRGBFillColor(ctx, 1.0, 1.0, 1.0, 1.0)
-    for i, frac in enumerate(BARS):
-        h = max_h * frac
-        x = start_x + i * (bar_w + gap)
+    for center_x, h32 in zip(BAR_CENTERS, BAR_HEIGHTS):
+        h = h32 * scale
+        x = inset + center_x * scale - bar_w / 2.0
         y = cy - h / 2.0
-        cap = bar_w / 2.0  # fully rounded bar ends
         Quartz.CGContextAddPath(ctx, _rounded_rect_path(x, y, bar_w, h, cap))
     Quartz.CGContextFillPath(ctx)
 

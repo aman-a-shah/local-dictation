@@ -50,6 +50,16 @@ class Store:
         self._conn = sqlite3.connect(self._path, check_same_thread=False)
         self._conn.row_factory = sqlite3.Row
         with self._lock:
+            # WAL lets the out-of-process dashboard read while the engine writes
+            # without either blocking the other; busy_timeout caps any contention
+            # so a history write can never stall the transcription worker for long.
+            # Both are best-effort (e.g. a read-only filesystem) — ignore failures.
+            try:
+                self._conn.execute("PRAGMA journal_mode=WAL")
+                self._conn.execute("PRAGMA synchronous=NORMAL")
+                self._conn.execute("PRAGMA busy_timeout=2000")
+            except sqlite3.Error:
+                pass
             self._conn.executescript(_SCHEMA)
             self._conn.commit()
 

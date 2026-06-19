@@ -67,7 +67,13 @@ export function Hero() {
       <div className={styles.gridLines} aria-hidden="true" />
       <div className={`container ${styles.grid}`}>
         <div className={styles.copy}>
-          <Tag>v1.0 · macOS &amp; Windows</Tag>
+          <div className={styles.topRow}>
+            <Tag>v1.0 · macOS &amp; Windows</Tag>
+            <span className={styles.freeBadge}>
+              <span className={styles.freePrice}>$0</span>
+              Completely free, forever — no subscription
+            </span>
+          </div>
           <h1 className={styles.title}>
             Talk. It types.
             <br />

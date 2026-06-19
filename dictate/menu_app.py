@@ -30,6 +30,7 @@ from AppKit import (
     NSMenuItem,
     NSStatusBar,
     NSVariableStatusItemLength,
+    NSWorkspace,
 )
 from Foundation import NSObject
 
@@ -207,13 +208,19 @@ class DictationController(NSObject):
                 "(toggle it ON), then quit and relaunch the app.",
             )
 
-        self.hotkey = FnHotkey(self.engine.on_press, self.engine.on_release, log=_log)
+        self.hotkey = FnHotkey(
+            self.engine.on_press,
+            self.engine.on_release,
+            log=_log,
+            max_hold_seconds=CONFIG.max_record_seconds,
+        )
         try:
             # Run the tap on its own thread/run loop, not the main one — the main
             # run loop drives the 60 fps overlay, and sharing it lets that drawing
             # starve the tap so macOS disables it and drops fn presses/releases
             # (the intermittent "chopped into empty fragments" failure).
             self.hotkey.start_background()
+            self._observe_wake()  # re-arm the tap the instant the Mac wakes
             _log("fn hotkey installed on dedicated thread — ready to dictate")
         except PermissionError as exc:
             _log(f"BLOCKED: {exc}")
@@ -223,6 +230,24 @@ class DictationController(NSObject):
                 f"{exc}\n\nAdd “Local Dictation” under System Settings → Privacy & "
                 "Security → Accessibility, then quit and relaunch the app.",
             )
+
+    @objc.python_method
+    def _observe_wake(self):
+        """Re-enable the fn tap the moment the Mac wakes from sleep.
+
+        A CGEventTap is frequently disabled across a sleep/wake cycle, and the
+        disable event isn't always delivered — the watchdog catches that within a
+        second or two, but waking the tap on the wake notification makes recovery
+        instant so the first fn press after opening the lid already works.
+        """
+        nc = NSWorkspace.sharedWorkspace().notificationCenter()
+        nc.addObserver_selector_name_object_(
+            self, "systemDidWake:", "NSWorkspaceDidWakeNotification", None
+        )
+
+    def systemDidWake_(self, _notification):  # noqa: N802 (main thread)
+        if self.hotkey is not None:
+            self.hotkey.reenable()
 
     # -- engine state bridge (callable from any thread) ---------------------
     @objc.python_method
@@ -324,6 +349,9 @@ def _do_warmup(controller):
         _log("warming up model…")
         elapsed = controller.engine.warmup()  # emits "ready" -> drainStates_ on main
         _log(f"model ready in {elapsed:0.1f}s")
+        # Open the mic stream now (no press can race it — the hotkey isn't installed
+        # yet) so the first key-down doesn't pay the cold CoreAudio device-open.
+        controller.engine.prewarm_audio()
         controller.performSelectorOnMainThread_withObject_waitUntilDone_(
             "installHotkey:", None, False
         )
