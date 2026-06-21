@@ -7,12 +7,14 @@ save/restore so the injector's stateful bits are covered headlessly.
 
 from __future__ import annotations
 
+import shutil
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
 import numpy as np
+import pytest
 from scipy.io import wavfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -48,6 +50,10 @@ def test_trim_silence_keeps_speech():
     assert trimmed.size >= speech.size  # speech preserved (+ small pad)
 
 
+@pytest.mark.skipif(
+    shutil.which("say") is None,
+    reason="needs macOS `say` to synthesize speech (and downloads a model)",
+)
 def test_transcribes_speech():
     tr = Transcriber()
     audio = synth("The quick brown fox jumps over the lazy dog.")

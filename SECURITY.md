@@ -78,7 +78,7 @@ compute the checksum of your file and compare it to the published value:
 If the value does not match the one published with the release, **do not run
 the file** — delete it and report it to us.
 
-Only download Local Dictation from the official website **https://local-transcription-tool.vercel.app** or the
+Only download Local Dictation from the official website **https://local-transcription.vercel.app** or the
 official releases page at **https://github.com/aman-a-shah/local-transcription**.
 
 ## Scope

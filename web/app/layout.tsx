@@ -11,7 +11,7 @@ const description =
   "Push-to-talk voice typing that runs 100% on your device. Hold a key, speak, release — your words are transcribed locally and pasted at your cursor. No cloud, no account, your voice never leaves your machine.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://local-transcription-tool.vercel.app"),
+  metadataBase: new URL("https://local-transcription.vercel.app"),
   title: {
     default: "Local Dictation — private, on-device voice typing",
     template: "%s — Local Dictation",

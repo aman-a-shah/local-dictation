@@ -55,9 +55,8 @@ def _save_settings(values: dict) -> dict:
 class DashboardAPI:
     """Instance bound to a pywebview window as ``js_api``."""
 
-    def __init__(self, app_version: str = "", on_quit=None, on_open_settings=None) -> None:
+    def __init__(self, app_version: str = "") -> None:
         self._version = app_version
-        self._on_quit = on_quit
 
     # -- stats + history ----------------------------------------------------
     def get_stats(self) -> dict[str, Any]:
@@ -81,7 +80,6 @@ class DashboardAPI:
         item = get_store().get(int(item_id))
         text = (item or {}).get("text", "")
         try:
-            from .platforms import inject  # reuse the clipboard layer
             # Just put it on the clipboard without pasting.
             import sys
 
@@ -104,7 +102,19 @@ class DashboardAPI:
         return _load_settings()
 
     def set_settings(self, values: dict) -> dict:
-        return _save_settings(values)
+        before = _load_settings().get("run_at_login")
+        data = _save_settings(values)
+        # Apply launch-at-login to the OS only when it actually changed.
+        if values and "run_at_login" in values:
+            after = bool(data.get("run_at_login"))
+            if after != bool(before):
+                try:
+                    from .autostart import set_run_at_login
+
+                    set_run_at_login(after)
+                except Exception:
+                    pass
+        return data
 
     # -- app/meta -----------------------------------------------------------
     def get_meta(self) -> dict:
@@ -127,7 +137,12 @@ class DashboardAPI:
         except Exception as exc:
             return {"available": False, "error": str(exc)}
 
-    def quit_app(self) -> bool:
-        if self._on_quit:
-            self._on_quit()
-        return True
+    def download_update(self, url: str) -> dict:
+        """Download the installer and hand it to the OS to run. One-click update."""
+        try:
+            from .updater import download_and_open
+
+            path = download_and_open(str(url))
+            return {"ok": True, "path": path}
+        except Exception as exc:
+            return {"ok": False, "error": str(exc)}

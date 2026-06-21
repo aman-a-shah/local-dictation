@@ -81,6 +81,7 @@ function Overview({ meta, onSeeAll }: { meta: Meta | null; onSeeAll: () => void 
   const [stats, setStats] = useState<Stats | null>(null);
   const [recent, setRecent] = useState<Transcription[]>([]);
   const [update, setUpdate] = useState<UpdateInfo | null>(null);
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     api.get_stats().then(setStats).catch(() => {});
@@ -103,7 +104,25 @@ function Overview({ meta, onSeeAll }: { meta: Meta | null; onSeeAll: () => void 
             Update available — <strong>v{update.latest}</strong>
           </span>
           {update.url && (
-            <Button onClick={() => (window.location.href = update.url!)}>Get it</Button>
+            <Button
+              disabled={updating}
+              onClick={() => {
+                setUpdating(true);
+                // One-click: Python downloads the installer and hands it to the
+                // OS. If the bridge fails for any reason, fall back to the URL.
+                api
+                  .download_update(update.url!)
+                  .then((r) => {
+                    if (!r.ok && update.url) window.location.href = update.url;
+                  })
+                  .catch(() => {
+                    if (update.url) window.location.href = update.url;
+                  })
+                  .finally(() => setUpdating(false));
+              }}
+            >
+              {updating ? "Downloading…" : "Get it"}
+            </Button>
           )}
         </div>
       )}

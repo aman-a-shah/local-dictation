@@ -48,7 +48,7 @@ export default async function DownloadPage() {
             </ol>
           </div>
           <div className={styles.guide}>
-            <h3 className={styles.guideTitle}>Windows</h3>
+            <h3 className={styles.guideTitle}>Windows <span className={styles.badge}>Beta</span></h3>
             <ol className={styles.steps}>
               <li>Run <span className={styles.mono}>LocalDictationSetup…exe</span>.</li>
               <li>If SmartScreen appears: <strong>More info</strong> → <strong>Run anyway</strong>.</li>
@@ -68,7 +68,7 @@ export default async function DownloadPage() {
         <h2 className={styles.h2}>System requirements</h2>
         <ul className={styles.reqList}>
           <li><strong>macOS</strong> 13 Ventura or later — Apple Silicon (GPU/MLX) or Intel (CPU).</li>
-          <li><strong>Windows</strong> 10 or 11, 64-bit. A discrete NVIDIA GPU is used automatically if present.</li>
+          <li><strong>Windows</strong> 10 or 11, 64-bit (<strong>beta</strong> — actively being tested). A discrete NVIDIA GPU is used automatically if present.</li>
           <li>~2 GB free disk for the speech model. A microphone. No internet required after setup.</li>
         </ul>
       </section>

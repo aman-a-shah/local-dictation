@@ -17,4 +17,4 @@ adheres to [Semantic Versioning](https://semver.org/).
 - Optional, secret-gated code signing + notarization (macOS) and Authenticode
   signing (Windows); builds run unsigned when secrets are absent.
 
-[1.0.0]: https://github.com/local-dictation/local-dictation/releases/tag/v1.0.0
+[1.0.0]: https://github.com/aman-a-shah/local-transcription/releases/tag/v1.0.0

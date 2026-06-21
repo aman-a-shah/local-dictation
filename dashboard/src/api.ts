@@ -65,6 +65,7 @@ type Bridge = {
   set_settings(values: Partial<Settings>): Promise<Settings>;
   get_meta(): Promise<Meta>;
   check_update(): Promise<UpdateInfo>;
+  download_update(url: string): Promise<{ ok: boolean; path?: string; error?: string }>;
 };
 
 export const isNative = typeof window !== "undefined" && !!(window as any).pywebview?.api;
@@ -179,6 +180,10 @@ const mock: Bridge = {
   },
   async check_update() {
     return { available: false };
+  },
+  async download_update(url) {
+    window.location.href = url;
+    return { ok: true };
   },
 };
 

@@ -14,7 +14,22 @@ executable inside Contents/MacOS, so macOS attributes Microphone / Accessibility
 permissions to *this app* rather than to the shared framework Python.app.
 """
 
+import ast
+from pathlib import Path
+
 from setuptools import setup
+
+
+def _version() -> str:
+    """Read __version__ from dictate/__init__.py without importing the package."""
+    src = Path(__file__).parent / "dictate" / "__init__.py"
+    for line in src.read_text(encoding="utf-8").splitlines():
+        if line.startswith("__version__"):
+            return ast.literal_eval(line.split("=", 1)[1].strip())
+    return "0.0.0"
+
+
+VERSION = _version()
 
 APP = ["run_menubar.py"]
 
@@ -27,8 +42,8 @@ OPTIONS = {
         "CFBundleName": "Local Dictation",
         "CFBundleDisplayName": "Local Dictation",
         "CFBundleIdentifier": "com.local.dictation",
-        "CFBundleShortVersionString": "1.0.0",
-        "CFBundleVersion": "1.0.0",
+        "CFBundleShortVersionString": VERSION,
+        "CFBundleVersion": VERSION,
         # Menu-bar agent: no Dock icon, no window.
         "LSUIElement": True,
         "LSMinimumSystemVersion": "13.0",
