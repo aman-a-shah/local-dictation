@@ -58,11 +58,15 @@ jobs:
             requirements: requirements.txt
             target: mac
             arch: arm64
-          - os: macos-13
+          # GitHub is retiring the macos-13 (Intel) runner, so the x64 DMG is
+          # cross-built on the Apple Silicon runner via an x86_64 Python under
+          # Rosetta 2 (see the "Set up Rosetta + x86_64 Python" step).
+          - os: macos-14
             label: mac-x64
             requirements: requirements-macos-intel.txt
             target: mac
             arch: x64
+            cross_x64: true
           - os: windows-latest
             label: windows-x64
             requirements: requirements-windows.txt
@@ -102,7 +106,31 @@ jobs:
             echo "No dashboard/package.json yet — building without the dashboard UI."
           fi
 
+      # Intel cross-build: setup-python only offers an arm64 interpreter on the
+      # macos-14 runner, so install a universal2 Python from python.org and run
+      # pip/PyInstaller under `arch -x86_64`. RUN_ARCH/PY are consumed by the
+      # shared "Install dependencies" / "Build" / "Read version" steps below
+      # (native builds fall back to `${PY:-python}` with no arch prefix).
+      - name: Set up Rosetta + x86_64 Python (Intel cross-build)
+        if: matrix.cross_x64 == true
+        shell: bash
+        run: |
+          set -euo pipefail
+          softwareupdate --install-rosetta --agree-to-license
+          PKG_URL="https://www.python.org/ftp/python/3.12.7/python-3.12.7-macos11.pkg"
+          curl -fsSL "$PKG_URL" -o "$RUNNER_TEMP/python.pkg"
+          sudo installer -pkg "$RUNNER_TEMP/python.pkg" -target /
+          PYBIN="/Library/Frameworks/Python.framework/Versions/3.12/bin"
+          echo "$PYBIN" >> "$GITHUB_PATH"
+          echo "PY=$PYBIN/python3.12" >> "$GITHUB_ENV"
+          echo "RUN_ARCH=arch -x86_64" >> "$GITHUB_ENV"
+          # Sanity check: the interpreter must actually report x86_64 under Rosetta.
+          MACHINE="$(arch -x86_64 "$PYBIN/python3.12" -c 'import platform; print(platform.machine())')"
+          echo "cross python machine: $MACHINE"
+          test "$MACHINE" = "x86_64"
+
       - name: Set up Python
+        if: matrix.cross_x64 != true
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -110,9 +138,9 @@ jobs:
       - name: Install Python dependencies
         shell: bash
         run: |
-          python -m pip install --upgrade pip
-          pip install -r "${{ matrix.requirements }}"
-          pip install "pyinstaller==6.11.1"
+          ${RUN_ARCH:-} ${PY:-python} -m pip install --upgrade pip
+          ${RUN_ARCH:-} ${PY:-python} -m pip install -r "${{ matrix.requirements }}"
+          ${RUN_ARCH:-} ${PY:-python} -m pip install "pyinstaller==6.11.1"
 
       # --- Generate the Windows .ico from the PNGs (no .ico checked in) -------
       - name: Generate Windows icon
@@ -133,14 +161,14 @@ jobs:
       - name: Build with PyInstaller
         shell: bash
         run: |
-          pyinstaller --noconfirm --clean desktop/pyinstaller/LocalDictation.spec
+          ${RUN_ARCH:-} ${PY:-python} -m PyInstaller --noconfirm --clean desktop/pyinstaller/LocalDictation.spec
 
       # --- Read the version for naming ----------------------------------------
       - name: Read version
         id: ver
         shell: bash
         run: |
-          VERSION=$(python -c "import re,io; print(re.search(r'__version__\s*=\s*[\"\x27]([^\"\x27]+)', io.open('dictate/__init__.py').read()).group(1))")
+          VERSION=$(${PY:-python} -c "import re,io; print(re.search(r'__version__\s*=\s*[\"\x27]([^\"\x27]+)', io.open('dictate/__init__.py').read()).group(1))")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "App version: $VERSION"
 
