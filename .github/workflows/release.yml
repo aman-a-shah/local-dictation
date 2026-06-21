@@ -91,8 +91,13 @@ jobs:
         run: |
           if [ -f dashboard/package.json ]; then
             echo "Building dashboard..."
-            npm --prefix dashboard ci
-            npm --prefix dashboard run build
+            # This is an npm workspaces monorepo: the dashboard depends on the
+            # @local-dictation/ui workspace and the only lockfile lives at the
+            # root, so install from the root (links all workspaces) then build
+            # the dashboard workspace. (`npm --prefix dashboard ci` fails: no
+            # lockfile in dashboard/ and the workspace dep can't resolve alone.)
+            npm ci
+            npm --workspace dashboard run build
           else
             echo "No dashboard/package.json yet — building without the dashboard UI."
           fi
