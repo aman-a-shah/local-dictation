@@ -23,6 +23,12 @@
 #define AppId "{{8E5C1F2A-3B47-4D9E-9C21-7A1F0B6E4D55}"
 
 [Setup]
+; Inno resolves relative [Files] Source and OutputDir against SourceDir, which
+; defaults to this script's own folder (desktop\windows). The PyInstaller build
+; lives at the repo root, so anchor SourceDir there: {#SourcePath} is this .iss
+; file's directory, and ..\.. walks up to the repo root. This makes the compile
+; independent of the working directory it's invoked from.
+SourceDir={#SourcePath}..\..
 AppId={#AppId}
 AppName={#AppName}
 AppVersion={#AppVersion}
