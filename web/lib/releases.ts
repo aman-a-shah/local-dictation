@@ -20,7 +20,7 @@ export const RELEASES_REPO =
   process.env.NEXT_PUBLIC_RELEASES_REPO || REPO;
 
 /** Fallback version shown before the GitHub API responds (keep in sync with dictate/__init__.py). */
-export const FALLBACK_VERSION = "1.0.0";
+export const FALLBACK_VERSION = "1.0.1";
 
 export type Platform = "mac" | "windows" | "linux";
 export type Arch = "arm64" | "x64";

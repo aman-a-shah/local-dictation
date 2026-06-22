@@ -46,6 +46,7 @@ from Foundation import (
     NSRunLoopCommonModes,
     NSTimer,
 )
+from Quartz import CATransaction
 
 # -- Geometry (points) --------------------------------------------------------
 # Everything scales off _SCALE, so resizing the whole bar is a one-line change.
@@ -199,6 +200,12 @@ class Overlay(NSObject):
         )
 
         view = _WaveView.alloc().initWithFrame_(rect)
+        # Layer-back the view so an explicit Core Animation transaction (see show())
+        # actually governs when the bar reaches the screen. Without a backing layer,
+        # the only path pixels take to the display is AppKit's automatic end-of-
+        # run-loop draw — which is exactly what gets starved when a worker thread
+        # holds the GIL during the hold, leaving the bar invisible.
+        view.setWantsLayer_(True)
         panel.setContentView_(view)
 
         self._panel = panel
@@ -281,14 +288,25 @@ class Overlay(NSObject):
         # only adds the short slide + the live bar motion on top.
         self._cur_y = self._final_y + _SHOW_OFFSET
         self._alpha = 1.0
+        # Push the bar to the window server SYNCHRONOUSLY, inside a Core Animation
+        # transaction we commit *and flush* ourselves. orderFrontRegardless +
+        # setAlphaValue + display only *mark* the window for update; the pixels
+        # don't actually reach the screen until the main run loop next reaches its
+        # end-of-cycle CA commit. On the first key-down after an idle gap we also
+        # fire a GIL-heavy model re-warm on a worker thread (warm-on-press), which
+        # can monopolise the GIL and keep the main run loop from spinning for the
+        # whole hold — so that deferred commit never happens and the bar stays
+        # invisible even though dictation works ("the waveform oftentimes doesn't
+        # show up"). Committing + flushing here forces the bar onto the screen now,
+        # before we ever yield the main thread, no matter when the loop next spins.
+        CATransaction.begin()
+        CATransaction.setDisableActions_(True)
         self._panel.setFrameOrigin_((self._x, self._cur_y))
         self._panel.setAlphaValue_(1.0)
         self._panel.orderFrontRegardless()
-        # Draw the first frame synchronously while we still hold the main thread,
-        # so the pill is painted into the backing store *before* a worker thread
-        # can grab the GIL — otherwise an ordered-front-but-unrendered window can
-        # flash empty until the next display pass the starved loop may not service.
         self._view.display()
+        CATransaction.commit()
+        CATransaction.flush()
         self._start_timer()
 
     @objc.python_method
@@ -345,17 +363,28 @@ class Overlay(NSObject):
         # Slide + fade.
         self._cur_y = _ease(self._cur_y, self._target_y, 0.28)
         self._alpha = _ease(self._alpha, self._target_alpha, 0.28)
-        self._panel.setFrameOrigin_((self._x, self._cur_y))
-        self._panel.setAlphaValue_(max(0.0, min(1.0, self._alpha)))
 
         # Fully hidden -> order out and stop burning frames.
         if not self._visible and self._alpha < 0.02:
+            self._panel.setAlphaValue_(0.0)
             self._panel.orderOut_(None)
             self._stop_timer()
             return
 
         self._render_bars()
-        self._view.setNeedsDisplay_(True)
+        # Drive every frame to the screen synchronously inside a CA transaction we
+        # flush ourselves, instead of deferring to AppKit's automatic end-of-run-
+        # loop draw. That automatic pass is the same one a GIL-heavy worker (the
+        # warm-on-press prime, or the transcription itself) can delay for the whole
+        # hold — which is what froze (or never showed) the bar. Flushing here keeps
+        # the slide and the live bars moving on each tick regardless of contention.
+        CATransaction.begin()
+        CATransaction.setDisableActions_(True)
+        self._panel.setFrameOrigin_((self._x, self._cur_y))
+        self._panel.setAlphaValue_(max(0.0, min(1.0, self._alpha)))
+        self._view.display()
+        CATransaction.commit()
+        CATransaction.flush()
 
     @objc.python_method
     def _render_bars(self):

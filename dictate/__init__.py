@@ -3,4 +3,4 @@
 from .app import DictationApp, main
 
 __all__ = ["DictationApp", "main"]
-__version__ = "1.0.0"
+__version__ = "1.0.1"
