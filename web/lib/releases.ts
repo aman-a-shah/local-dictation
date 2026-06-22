@@ -6,7 +6,7 @@
  * newest build. The API routes and the download page both import from here.
  */
 
-export const REPO = process.env.NEXT_PUBLIC_GH_REPO || "aman-a-shah/local-transcription";
+export const REPO = process.env.NEXT_PUBLIC_GH_REPO || "aman-a-shah/local-dictation";
 
 /**
  * Public repo that hosts the published installers and their GitHub Release.
