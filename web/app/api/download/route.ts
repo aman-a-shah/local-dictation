@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { track } from "@vercel/analytics/server";
-import { BUILDS, latestAssetUrl, resolveBuild } from "@/lib/releases";
+import { BUILDS, latestAssetUrl, resolveBuild, type BuildKey } from "@/lib/releases";
 
 export const runtime = "edge";
 
@@ -21,10 +21,61 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL("/download", req.url), 302);
   }
   const build = BUILDS[key];
-  await track("download", {
-    build: key,
-    os: build.platform,
-    arch: build.arch,
-  }).catch(() => {});
+  await Promise.all([
+    track("download", {
+      build: key,
+      os: build.platform,
+      arch: build.arch,
+    }).catch(() => {}),
+    trackGa(req, key, build).catch(() => {}),
+  ]);
   return NextResponse.redirect(latestAssetUrl(build.asset), 302);
+}
+
+/**
+ * Mirror the download into GA4 via the Measurement Protocol so the same
+ * ad-blocker-proof, every-platform count shows up next to the page-view data in
+ * Google Analytics. No-ops unless both the public Measurement ID and the
+ * server-only API secret are set, so dev/preview without secrets stay quiet.
+ */
+async function trackGa(
+  req: NextRequest,
+  key: BuildKey,
+  build: (typeof BUILDS)[BuildKey],
+): Promise<void> {
+  const measurementId = process.env.NEXT_PUBLIC_GA_ID;
+  const apiSecret = process.env.GA_API_SECRET;
+  if (!measurementId || !apiSecret) return;
+
+  const url =
+    `https://www.google-analytics.com/mp/collect?measurement_id=${measurementId}` +
+    `&api_secret=${apiSecret}`;
+
+  await fetch(url, {
+    method: "POST",
+    body: JSON.stringify({
+      client_id: gaClientId(req),
+      events: [
+        {
+          name: "download",
+          params: {
+            build: key,
+            os: build.platform,
+            arch: build.arch,
+          },
+        },
+      ],
+    }),
+  });
+}
+
+/**
+ * Reuse the visitor's gtag.js client id (stored in the `_ga` cookie as
+ * `GA1.1.<id>.<ts>`) so a server-side download stitches to the same session as
+ * their page views. Falls back to a fresh random id when the cookie is absent.
+ */
+function gaClientId(req: NextRequest): string {
+  const ga = req.cookies.get("_ga")?.value;
+  const m = ga?.match(/^GA\d+\.\d+\.(\d+\.\d+)$/);
+  return m ? m[1] : crypto.randomUUID();
 }
