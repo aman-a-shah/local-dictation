@@ -60,6 +60,8 @@ _MAX_H = _BAR_H - 13.0 * _SCALE  # tallest a stick can grow
 
 _GAP_UNDER_NOTCH = 6.0          # breathing room between the notch and the bar
 _SLIDE = _BAR_H + _GAP_UNDER_NOTCH  # how far it travels on show/hide
+_SHOW_OFFSET = _SLIDE * 0.35   # how far up it starts — small, so it's visible at once
+_MIN_DWELL = 0.45              # keep the bar on screen at least this long once shown
 
 # -- Reactivity tuning --------------------------------------------------------
 # Two ideas work together so the bars react satisfyingly to ANY mic, quiet or
@@ -160,6 +162,8 @@ class Overlay(NSObject):
         self._alpha = 0.0
         self._target_alpha = 0.0
         self._visible = False
+        self._hide_requested = False
+        self._shown_at = 0.0
 
         self._mode = "listening"
         self._t0 = time.monotonic()
@@ -261,12 +265,30 @@ class Overlay(NSObject):
         # so the bars react from the very first syllable instead of sitting dead
         # while a re-primed floor settles.
         self._visible = True
+        self._hide_requested = False
+        self._shown_at = time.monotonic()
         self._target_y = self._final_y
         self._target_alpha = 1.0
-        # Begin tucked up behind the notch so it appears to emerge from under it.
-        self._cur_y = self._hidden_y
+
+        # Paint the bar visible RIGHT NOW, on this (main) thread, rather than
+        # easing in from alpha 0 / from behind the notch. The 60 fps timer that
+        # used to do that fade-in can be starved for the entire hold by GIL-heavy
+        # work on the worker threads — a concurrent model warm-up fired on press,
+        # or the transcription itself — which left the panel parked invisible even
+        # though dictation worked fine ("the waveform sometimes doesn't appear").
+        # Starting already-visible, near its resting spot and at full opacity,
+        # means the bar is guaranteed on screen the instant we listen; the timer
+        # only adds the short slide + the live bar motion on top.
+        self._cur_y = self._final_y + _SHOW_OFFSET
+        self._alpha = 1.0
         self._panel.setFrameOrigin_((self._x, self._cur_y))
+        self._panel.setAlphaValue_(1.0)
         self._panel.orderFrontRegardless()
+        # Draw the first frame synchronously while we still hold the main thread,
+        # so the pill is painted into the backing store *before* a worker thread
+        # can grab the GIL — otherwise an ordered-front-but-unrendered window can
+        # flash empty until the next display pass the starved loop may not service.
+        self._view.display()
         self._start_timer()
 
     @objc.python_method
@@ -275,10 +297,14 @@ class Overlay(NSObject):
 
     @objc.python_method
     def hide(self):
-        self._visible = False
-        self._target_y = self._hidden_y
-        self._target_alpha = 0.0
-        self._start_timer()  # keep ticking so it animates out, then orders out
+        # Defer the retract until the bar has had a minimum dwell on screen. A
+        # fast utterance can drain listen -> transcribe -> result -> idle in a
+        # single main-thread pass; without this, hide() would tear the bar down in
+        # the very tick it appeared, so it would flash invisibly or not at all.
+        # The timer (kept alive here) performs the actual retract in tick_ once the
+        # dwell has elapsed.
+        self._hide_requested = True
+        self._start_timer()
 
     # -- render loop ---------------------------------------------------------
     @objc.python_method
@@ -303,6 +329,18 @@ class Overlay(NSObject):
     def tick_(self, _timer):  # noqa: N802 (runs on main thread)
         if self._panel is None:
             return
+
+        # A hide that was deferred for the minimum dwell: once the bar has been up
+        # long enough, start the retract (slide back up under the notch + fade).
+        if (
+            self._hide_requested
+            and self._visible
+            and (time.monotonic() - self._shown_at) >= _MIN_DWELL
+        ):
+            self._hide_requested = False
+            self._visible = False
+            self._target_y = self._hidden_y
+            self._target_alpha = 0.0
 
         # Slide + fade.
         self._cur_y = _ease(self._cur_y, self._target_y, 0.28)
