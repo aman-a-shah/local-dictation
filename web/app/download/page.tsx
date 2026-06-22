@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Kbd } from "@local-dictation/ui";
 import { DownloadChooser } from "@/components/DownloadChooser";
-import { getLatestRelease, REPO } from "@/lib/releases";
+import { getLatestRelease, RELEASES_REPO } from "@/lib/releases";
 import styles from "./download.module.css";
 
 export const metadata: Metadata = {
@@ -60,7 +60,7 @@ export default async function DownloadPage() {
         <p className={styles.verify}>
           Prefer to verify the download? Each release publishes SHA-256 checksums
           on{" "}
-          <a href={`https://github.com/${REPO}/releases/latest`}>the releases page</a>.
+          <a href={`https://github.com/${RELEASES_REPO}/releases/latest`}>the releases page</a>.
         </p>
       </section>
 
