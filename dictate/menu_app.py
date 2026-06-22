@@ -32,7 +32,7 @@ from AppKit import (
     NSVariableStatusItemLength,
     NSWorkspace,
 )
-from Foundation import NSObject
+from Foundation import NSObject, NSRunLoopCommonModes
 
 from .config import CONFIG
 from .core import DictationEngine
@@ -256,8 +256,11 @@ class DictationController(NSObject):
         # just wake the main thread to drain the queue.
         with self._pending_lock:
             self._pending.append((state, dict(info) if info else {}))
-        self.performSelectorOnMainThread_withObject_waitUntilDone_(
-            "drainStates:", None, False
+        # Deliver in *common* modes so the state (and the overlay it shows) lands
+        # even while the run loop is in a tracking mode — e.g. the status-bar menu
+        # is open — instead of stalling until the loop returns to its default mode.
+        self.performSelectorOnMainThread_withObject_waitUntilDone_modes_(
+            "drainStates:", None, False, [NSRunLoopCommonModes]
         )
 
     def drainStates_(self, _):  # noqa: N802 (runs on main thread)
