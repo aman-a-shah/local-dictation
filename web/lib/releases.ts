@@ -8,6 +8,17 @@
 
 export const REPO = process.env.NEXT_PUBLIC_GH_REPO || "aman-a-shah/local-transcription";
 
+/**
+ * Public repo that hosts the published installers and their GitHub Release.
+ *
+ * The source repo (`REPO`) is private, so its release assets 404 for the public.
+ * Installers are therefore mirrored to a separate *public* repo and every
+ * download / version lookup resolves against this one. Falls back to `REPO` when
+ * unset, so local dev (or making the source repo public) keeps working unchanged.
+ */
+export const RELEASES_REPO =
+  process.env.NEXT_PUBLIC_RELEASES_REPO || REPO;
+
 /** Fallback version shown before the GitHub API responds (keep in sync with dictate/__init__.py). */
 export const FALLBACK_VERSION = "1.0.0";
 
@@ -47,7 +58,7 @@ export const BUILDS: Record<
 };
 
 export function latestAssetUrl(asset: string): string {
-  return `https://github.com/${REPO}/releases/latest/download/${asset}`;
+  return `https://github.com/${RELEASES_REPO}/releases/latest/download/${asset}`;
 }
 
 /** Map an OS/arch query to a build key. */
@@ -74,7 +85,7 @@ export type ReleaseInfo = {
  */
 export async function getLatestRelease(): Promise<ReleaseInfo> {
   try {
-    const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
+    const res = await fetch(`https://api.github.com/repos/${RELEASES_REPO}/releases/latest`, {
       headers: { Accept: "application/vnd.github+json" },
       next: { revalidate: 1800 },
     });
@@ -84,14 +95,14 @@ export async function getLatestRelease(): Promise<ReleaseInfo> {
       version: String(data.tag_name || FALLBACK_VERSION).replace(/^v/, ""),
       notes: String(data.body || ""),
       publishedAt: data.published_at ?? null,
-      htmlUrl: data.html_url ?? `https://github.com/${REPO}/releases`,
+      htmlUrl: data.html_url ?? `https://github.com/${RELEASES_REPO}/releases`,
     };
   } catch {
     return {
       version: FALLBACK_VERSION,
       notes: "",
       publishedAt: null,
-      htmlUrl: `https://github.com/${REPO}/releases`,
+      htmlUrl: `https://github.com/${RELEASES_REPO}/releases`,
     };
   }
 }

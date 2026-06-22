@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { marked } from "marked";
-import { getLatestRelease, REPO } from "@/lib/releases";
+import { getLatestRelease, RELEASES_REPO } from "@/lib/releases";
 import styles from "./changelog.module.css";
 
 export const metadata: Metadata = {
@@ -47,7 +47,7 @@ export default async function ChangelogPage() {
 
       <p className={styles.all}>
         Full history on{" "}
-        <a href={`https://github.com/${REPO}/releases`}>GitHub Releases</a>.
+        <a href={`https://github.com/${RELEASES_REPO}/releases`}>GitHub Releases</a>.
       </p>
     </div>
   );
