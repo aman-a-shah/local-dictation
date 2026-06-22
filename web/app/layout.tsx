@@ -4,10 +4,13 @@ import "@local-dictation/ui/components.css";
 import "@local-dictation/ui/fonts";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { SmoothScroll } from "@/components/SmoothScroll";
 import { EngagementTracker } from "@/components/EngagementTracker";
+
+const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
 const description =
   "Push-to-talk voice typing that runs 100% on your device. Hold a key, speak, release — your words are transcribed locally and pasted at your cursor. No cloud, no account, your voice never leaves your machine.";
@@ -48,6 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Analytics />
         <EngagementTracker />
       </body>
+      {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
     </html>
   );
 }

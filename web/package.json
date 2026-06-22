@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@local-dictation/ui": "*",
+    "@next/third-parties": "14.2.35",
     "@vercel/analytics": "^2.0.1",
     "lenis": "1.1.13",
     "marked": "14.1.2",
