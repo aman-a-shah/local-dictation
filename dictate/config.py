@@ -106,11 +106,14 @@ class Config:
     # Keep the microphone stream *running* (warm) for this long after the last
     # take, so a follow-up press captures instantly instead of paying CoreAudio's
     # ~180 ms device start-up every time. After this idle window the stream is
-    # stopped, releasing the mic and turning off the macOS "in use" dot — so the
-    # only press that ever waits is the first one after a long pause. 0 releases
-    # the mic immediately after each take (old behaviour, dot off but every press
-    # pays the start-up cost).
-    mic_warm_seconds: float = field(default_factory=lambda: _env_float("MIC_WARM_SECONDS", 180.0))
+    # stopped, releasing the mic and turning off the macOS "in use" dot. A short
+    # default keeps the mic visibly off whenever you're not actively dictating
+    # (the dot goes dark a few seconds after you stop) while still letting
+    # back-to-back takes within the window capture instantly — only the first
+    # press after a lull pays the ~180 ms restart, paid while the key is held
+    # before you speak. Raise it (e.g. 180) to stay warm longer; 0 releases the
+    # mic the instant you let go of fn (every press then pays the start-up cost).
+    mic_warm_seconds: float = field(default_factory=lambda: _env_float("MIC_WARM_SECONDS", 5.0))
 
     # Ignore taps shorter than this (accidental brushes of the key).
     min_record_seconds: float = field(default_factory=lambda: _env_float("MIN_SECONDS", 0.30))

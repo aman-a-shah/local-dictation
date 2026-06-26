@@ -23,6 +23,8 @@ from AppKit import (
     NSApplication,
     NSApplicationActivationPolicyAccessory,
     NSAlert,
+    NSBezierPath,
+    NSColor,
     NSFontWeightRegular,
     NSImage,
     NSImageSymbolConfiguration,
@@ -32,7 +34,7 @@ from AppKit import (
     NSVariableStatusItemLength,
     NSWorkspace,
 )
-from Foundation import NSObject, NSRunLoopCommonModes
+from Foundation import NSMakeRect, NSMakeSize, NSObject, NSRunLoopCommonModes
 
 from .config import CONFIG
 from .core import DictationEngine
@@ -80,14 +82,24 @@ def _arm_deadman(seconds: float) -> None:
 # images so they sit natively in the menu bar (auto-tinting for light/dark,
 # matching the system's own icons) instead of a loud emoji. A `waveform` mark
 # reads instantly as "voice"; the busy/recording/error states vary it subtly.
+# "ld.waveform" is our OWN 5-bar mark (drawn below), not an SF Symbol: Apple's
+# `waveform` symbol has many bars and reads as a *different* logo than the app
+# icon's 5-bar waveform (assets/make_icon.py). The idle/ready glyph — the one
+# parked in the menu bar whenever the app is running — uses ours so it matches.
 _SYMBOL = {
     "loading": "ellipsis",                 # warming the model
-    "ready": "waveform",                   # idle, waiting for fn
+    "ready": "ld.waveform",                # idle, waiting for fn (our 5-bar mark)
     "listening": "mic.fill",               # recording your voice
     "transcribing": "ellipsis",            # model is thinking
     "error": "exclamationmark.triangle",   # something went wrong
     "blocked": "exclamationmark.triangle",  # missing a permission
 }
+
+# The app icon's 5-bar waveform on a 32-unit grid (identical to make_icon.py and
+# the website/dashboard Logo): bar centers + heights, bar width.
+_WAVE_CENTERS = (8, 12, 16, 20, 24)
+_WAVE_HEIGHTS = (11, 6, 16, 8, 12)
+_WAVE_BAR_W = 2.8
 
 # Emoji fallback if SF Symbols aren't available (very old macOS).
 _GLYPH = {
@@ -102,8 +114,61 @@ _GLYPH = {
 _SYMBOL_CACHE: dict = {}
 
 
+def _waveform_image():
+    """Our 5-bar waveform as a template NSImage, matching the macOS app icon.
+
+    Drawn (not an SF Symbol) because Apple's `waveform` symbol has many bars and
+    reads as a different mark. Template image → the menu bar tints it for
+    light/dark like a native glyph. Resolution-independent (the handler redraws
+    per backing scale), so it stays crisp on Retina. Cached.
+    """
+    if "ld.waveform" in _SYMBOL_CACHE:
+        return _SYMBOL_CACHE["ld.waveform"]
+
+    pad = 1.0
+    scale = 14.0 / max(_WAVE_HEIGHTS)        # tallest bar (16u) -> 14 pt
+    bar_w = _WAVE_BAR_W * scale
+    left_edge = _WAVE_CENTERS[0] - _WAVE_BAR_W / 2.0
+    cluster_w = ((_WAVE_CENTERS[-1] + _WAVE_BAR_W / 2.0) - left_edge) * scale
+    width = cluster_w + 2 * pad
+    height = 16.0
+    cy = height / 2.0
+
+    def _draw(_rect):
+        try:
+            NSColor.blackColor().setFill()  # template: only the shape matters
+            for cx, h in zip(_WAVE_CENTERS, _WAVE_HEIGHTS):
+                bh = h * scale
+                x = pad + ((cx - _WAVE_BAR_W / 2.0) - left_edge) * scale
+                y = cy - bh / 2.0
+                rect = NSMakeRect(x, y, bar_w, bh)
+                NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(
+                    rect, bar_w / 2.0, bar_w / 2.0
+                ).fill()
+        except Exception:
+            return False
+        return True
+
+    image = None
+    try:
+        image = NSImage.imageWithSize_flipped_drawingHandler_(
+            NSMakeSize(width, height), False, _draw
+        )
+        if image is not None:
+            image.setTemplate_(True)
+    except Exception:
+        image = None
+    _SYMBOL_CACHE["ld.waveform"] = image
+    return image
+
+
 def _symbol_image(name):
-    """An SF Symbol as a sized template NSImage (cached), or None if unavailable."""
+    """A template NSImage for the menu bar (cached), or None if unavailable.
+
+    ``ld.waveform`` is our own drawn 5-bar mark; everything else is an SF Symbol.
+    """
+    if name == "ld.waveform":
+        return _waveform_image()
     if name in _SYMBOL_CACHE:
         return _SYMBOL_CACHE[name]
     image = None
@@ -337,7 +402,7 @@ class DictationController(NSObject):
         if self.statusItem is None:
             return
         button = self.statusItem.button()
-        image = _symbol_image(_SYMBOL.get(glyph_key, "waveform"))
+        image = _symbol_image(_SYMBOL.get(glyph_key, "ld.waveform"))
         if image is not None:
             button.setImage_(image)
             button.setTitle_("")  # image-only; no stray text beside the icon

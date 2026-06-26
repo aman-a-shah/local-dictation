@@ -1,30 +1,38 @@
 import { useEffect, useState } from "react";
 import { Logo, Button, Waveform } from "@local-dictation/ui";
-import { api, isNative } from "./api";
+import { api, nativeReady } from "./api";
 import type { Stats, Transcription, Settings, Meta, UpdateInfo } from "./api";
+
+// Small inline check used on the dark hero strip (gold, paired with text).
+function Check() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M3.5 8.5l3 3 6-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 type View = "overview" | "history" | "settings";
 
 export function App() {
   const [view, setView] = useState<View>("overview");
   const [meta, setMeta] = useState<Meta | null>(null);
+  // Assume the real bridge until told otherwise, so the app never flashes the
+  // "preview" badge while pywebview is still wiring up its js_api.
+  const [native, setNative] = useState(true);
 
   useEffect(() => {
-    // pywebview injects the bridge slightly after load; retry briefly.
-    let tries = 0;
-    const load = () => {
-      api.get_meta().then(setMeta).catch(() => {
-        if (tries++ < 20) setTimeout(load, 150);
-      });
-    };
-    load();
+    // `api` now awaits the bridge internally, so a single call is enough — no
+    // hand-rolled retry needed (and the old retry never actually re-ran).
+    api.get_meta().then(setMeta).catch(() => {});
+    nativeReady.then(setNative);
   }, []);
 
   return (
     <div className="app">
       <aside className="side">
         <div className="side__brand">
-          <Logo size={24} />
+          <Logo size={22} appMark />
         </div>
         <nav className="nav" aria-label="Views">
           <NavItem icon="◳" label="Overview" active={view === "overview"} onClick={() => setView("overview")} />
@@ -32,9 +40,10 @@ export function App() {
           <NavItem icon="⚙" label="Settings" active={view === "settings"} onClick={() => setView("settings")} />
         </nav>
         <div className="side__foot">
+          <span className="side__priv">on-device</span>
           <span>v{meta?.version ?? "—"}</span>
           <span>{meta ? `${meta.platform} · ${meta.arch}` : ""}</span>
-          {!isNative && <span style={{ color: "var(--accent)" }}>preview (mock data)</span>}
+          {!native && <span style={{ color: "var(--accent)" }}>preview (mock data)</span>}
         </div>
       </aside>
 
@@ -90,13 +99,31 @@ function Overview({ meta, onSeeAll }: { meta: Meta | null; onSeeAll: () => void 
   }, []);
 
   const maxDay = stats ? Math.max(1, ...stats.daily.map((d) => d.words)) : 1;
+  const today = new Date().toISOString().slice(0, 10);
 
   return (
     <>
-      <header className="view-head">
-        <h1>Overview</h1>
-        <p>Everything below is stored only on this device.</p>
-      </header>
+      <section className="hero fade-up" aria-label="Local Dictation">
+        <div className="hero__grid" aria-hidden="true" />
+        <div className="hero__copy">
+          <div className="hero__brand">
+            <Logo size={30} appMark withWordmark={false} />
+            <span className="hero__title">Local Dictation</span>
+          </div>
+          <p className="hero__sub">
+            Push-to-talk voice typing that runs entirely on your machine. Hold {meta?.hotkey_label ?? "your key"},
+            speak, release.
+          </p>
+          <div className="hero__chips">
+            <span className="hero__chip"><Check /> 100% on-device</span>
+            <span className="hero__chip"><Check /> No account</span>
+            <span className="hero__chip"><Check /> Stays on this device</span>
+          </div>
+        </div>
+        <div className="hero__wave">
+          <Waveform mode="idle" height={104} bars={40} />
+        </div>
+      </section>
 
       {update?.available && (
         <div className="update-banner">
@@ -127,11 +154,29 @@ function Overview({ meta, onSeeAll }: { meta: Meta | null; onSeeAll: () => void 
         </div>
       )}
 
-      <div className="stat-grid">
-        <StatTile value={stats ? nf.format(stats.words) : "—"} label="words transcribed" hint={stats ? `across ${nf.format(stats.sessions)} sessions` : ""} />
-        <StatTile value={stats ? fmtDuration(stats.time_saved_seconds) : "—"} label="time saved" hint="vs. typing at 40 wpm" />
-        <StatTile value={stats ? `${stats.streak_days}` : "—"} label="day streak" hint="consecutive days" />
-        <StatTile value={stats ? fmtDuration(stats.audio_seconds) : "—"} label="spoken" hint={stats ? `${fmtDuration(stats.compute_seconds)} computing` : ""} />
+      <div className="stat-band">
+        <div className="stat stat--feature">
+          <div className="stat__num stat__num--gold">
+            {stats ? nf.format(stats.words) : "—"}
+          </div>
+          <div className="stat__label">words transcribed</div>
+          <div className="stat__hint">{stats ? `across ${nf.format(stats.sessions)} sessions` : ""}</div>
+        </div>
+        <div className="stat">
+          <div className="stat__num">{stats ? fmtDuration(stats.time_saved_seconds) : "—"}</div>
+          <div className="stat__label">time saved</div>
+          <div className="stat__hint">vs. typing at 40 wpm</div>
+        </div>
+        <div className="stat">
+          <div className="stat__num">{stats ? nf.format(stats.streak_days) : "—"}</div>
+          <div className="stat__label">day streak</div>
+          <div className="stat__hint">consecutive days</div>
+        </div>
+        <div className="stat">
+          <div className="stat__num">{stats ? fmtDuration(stats.audio_seconds) : "—"}</div>
+          <div className="stat__label">spoken</div>
+          <div className="stat__hint">{stats ? `${fmtDuration(stats.compute_seconds)} computing` : ""}</div>
+        </div>
       </div>
 
       <div className="panel">
@@ -143,7 +188,7 @@ function Overview({ meta, onSeeAll }: { meta: Meta | null; onSeeAll: () => void 
           {(stats?.daily ?? []).map((d, i) => (
             <div
               key={i}
-              className="chart__bar"
+              className={`chart__bar${d.day === today ? " chart__bar--today" : ""}`}
               style={{ height: `${(d.words / maxDay) * 100}%` }}
               title={`${d.day}: ${nf.format(d.words)} words`}
             />
@@ -160,10 +205,10 @@ function Overview({ meta, onSeeAll }: { meta: Meta | null; onSeeAll: () => void 
       <div className="panel">
         <div className="panel__head">
           <h2>Recent</h2>
-          <button className="icon-btn" onClick={onSeeAll}>see all →</button>
+          <button className="see-all" onClick={onSeeAll}>see all →</button>
         </div>
         {recent.length === 0 ? (
-          <p style={{ color: "var(--muted)", fontSize: "var(--text-sm)" }}>
+          <p className="empty-note">
             No transcriptions yet. Hold {meta?.hotkey_label ?? "your key"} and speak.
           </p>
         ) : (
@@ -173,7 +218,7 @@ function Overview({ meta, onSeeAll }: { meta: Meta | null; onSeeAll: () => void 
                 <div className="entry__text">{t.text}</div>
                 <div className="entry__meta">
                   <span>{fmtRelative(t.ts)}</span>
-                  <span>{t.words} words</span>
+                  <span className="entry__words">{t.words} words</span>
                 </div>
               </div>
             </div>
@@ -181,16 +226,6 @@ function Overview({ meta, onSeeAll }: { meta: Meta | null; onSeeAll: () => void 
         )}
       </div>
     </>
-  );
-}
-
-function StatTile({ value, label, hint }: { value: string; label: string; hint?: string }) {
-  return (
-    <div className="stat-tile">
-      <div className="ld-stat__num">{value}</div>
-      <div className="ld-stat__label">{label}</div>
-      {hint && <div className="stat-tile__hint">{hint}</div>}
-    </div>
   );
 }
 
@@ -248,7 +283,7 @@ function History() {
               <div className="entry__text">{t.text}</div>
               <div className="entry__meta">
                 <span>{fmtRelative(t.ts)}</span>
-                <span>{t.words} words</span>
+                <span className="entry__words">{t.words} words</span>
                 <span>{t.duration_s.toFixed(1)}s audio</span>
                 {t.lang && <span>{t.lang}</span>}
               </div>
@@ -301,28 +336,30 @@ function SettingsView({ meta }: { meta: Meta | null }) {
         <p>Changes are saved instantly. Some apply on next launch.</p>
       </header>
 
-      <Row label="Push-to-talk key" desc={isMac ? "macOS uses the fn (globe) key by default." : "Hold this key to dictate."}>
-        {isMac ? (
-          <span className="ld-kbd">fn</span>
-        ) : (
-          <select value={s.hotkey} onChange={(e) => update({ hotkey: e.target.value })}>
-            {KEYS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+      <div className="settings-card">
+        <Row label="Push-to-talk key" desc={isMac ? "macOS uses the fn (globe) key by default." : "Hold this key to dictate."}>
+          {isMac ? (
+            <span className="ld-kbd">fn</span>
+          ) : (
+            <select value={s.hotkey} onChange={(e) => update({ hotkey: e.target.value })}>
+              {KEYS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          )}
+        </Row>
+
+        <Row label="Language" desc="Pin a language to skip detection (slightly faster).">
+          <select value={s.language} onChange={(e) => update({ language: e.target.value })}>
+            {LANGS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </select>
-        )}
-      </Row>
+        </Row>
 
-      <Row label="Language" desc="Pin a language to skip detection (slightly faster).">
-        <select value={s.language} onChange={(e) => update({ language: e.target.value })}>
-          {LANGS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-        </select>
-      </Row>
-
-      <Toggle label="Smart formatting" desc="Turn spoken enumerations into clean numbered or bulleted lists." checked={s.polish} onChange={(v) => update({ polish: v })} />
-      <Toggle label="Trailing space" desc="Add a space after each insert for continuous dictation." checked={s.append_space} onChange={(v) => update({ append_space: v })} />
-      <Toggle label="Restore clipboard" desc="Put your previous clipboard back after pasting." checked={s.restore_clipboard} onChange={(v) => update({ restore_clipboard: v })} />
-      <Toggle label="Sound cues" desc="Soft sounds when listening starts and text is inserted." checked={s.sound_feedback} onChange={(v) => update({ sound_feedback: v })} />
-      <Toggle label="Run at login" desc="Start Local Dictation automatically when you sign in." checked={s.run_at_login} onChange={(v) => update({ run_at_login: v })} />
-      <Toggle label="Save history" desc="Keep a local record of transcriptions for this dashboard." checked={s.save_history} onChange={(v) => update({ save_history: v })} />
+        <Toggle label="Smart formatting" desc="Turn spoken enumerations into clean numbered or bulleted lists." checked={s.polish} onChange={(v) => update({ polish: v })} />
+        <Toggle label="Trailing space" desc="Add a space after each insert for continuous dictation." checked={s.append_space} onChange={(v) => update({ append_space: v })} />
+        <Toggle label="Restore clipboard" desc="Put your previous clipboard back after pasting." checked={s.restore_clipboard} onChange={(v) => update({ restore_clipboard: v })} />
+        <Toggle label="Sound cues" desc="Soft sounds when listening starts and text is inserted." checked={s.sound_feedback} onChange={(v) => update({ sound_feedback: v })} />
+        <Toggle label="Run at login" desc="Start Local Dictation automatically when you sign in." checked={s.run_at_login} onChange={(v) => update({ run_at_login: v })} />
+        <Toggle label="Save history" desc="Keep a local record of transcriptions for this dashboard." checked={s.save_history} onChange={(v) => update({ save_history: v })} />
+      </div>
 
       {savedNote && (
         <p className="restart-note">Saved. Key, language and model changes take effect after you quit and relaunch.</p>
