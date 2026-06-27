@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Kbd, ButtonLink, Stat, CountUp } from "@local-dictation/ui";
+import { Kbd, ButtonLink, Stat, CountUp } from "@voca/ui";
 import { Hero } from "@/components/Hero";
 import { Reveal } from "@/components/Reveal";
 import { Marquee } from "@/components/Marquee";

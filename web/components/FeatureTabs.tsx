@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Kbd } from "@local-dictation/ui";
+import { Kbd } from "@voca/ui";
 import styles from "./FeatureTabs.module.css";
 
 type Tab = { id: string; label: string; blurb: string; preview: React.ReactNode };

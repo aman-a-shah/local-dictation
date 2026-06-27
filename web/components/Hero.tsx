@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Waveform, Tag, Kbd } from "@local-dictation/ui";
-import type { WaveMode } from "@local-dictation/ui";
+import { Waveform, Tag, Kbd } from "@voca/ui";
+import type { WaveMode } from "@voca/ui";
 import { DownloadCTA } from "./DownloadCTA";
 import { Tilt } from "./Tilt";
 import styles from "./Hero.module.css";

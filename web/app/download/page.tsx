@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Kbd } from "@local-dictation/ui";
+import { Kbd } from "@voca/ui";
 import { DownloadChooser } from "@/components/DownloadChooser";
 import { getLatestRelease, RELEASES_REPO } from "@/lib/releases";
 import styles from "./download.module.css";
@@ -7,7 +7,7 @@ import styles from "./download.module.css";
 export const metadata: Metadata = {
   title: "Download",
   description:
-    "Download Local Dictation for macOS (Apple Silicon or Intel) and Windows. Free, open source, 100% on-device.",
+    "Download Voca for macOS (Apple Silicon or Intel) and Windows. Free, open source, 100% on-device.",
 };
 
 export default async function DownloadPage() {
@@ -16,7 +16,7 @@ export default async function DownloadPage() {
   return (
     <div className="container container--narrow section">
       <header className={styles.head}>
-        <h1 className={styles.h1}>Download Local Dictation</h1>
+        <h1 className={styles.h1}>Download Voca</h1>
         <p className="lead">
           Free and open source. Version{" "}
           <span className={styles.version}>{release.version}</span>. We highlight
@@ -50,7 +50,7 @@ export default async function DownloadPage() {
           <div className={styles.guide}>
             <h3 className={styles.guideTitle}>Windows <span className={styles.badge}>Beta</span></h3>
             <ol className={styles.steps}>
-              <li>Run <span className={styles.mono}>LocalDictationSetup…exe</span>.</li>
+              <li>Run <span className={styles.mono}>VocaSetup…exe</span>.</li>
               <li>If SmartScreen appears: <strong>More info</strong> → <strong>Run anyway</strong>.</li>
               <li>Finish the installer; the app starts in your system tray.</li>
               <li>Hold <Kbd>Left&nbsp;Ctrl</Kbd>, speak, release.</li>

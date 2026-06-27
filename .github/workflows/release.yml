@@ -1,5 +1,5 @@
 # =============================================================================
-# Build & release "Local Dictation" for macOS (arm64 + Intel) and Windows.
+# Build & release "Voca" for macOS (arm64 + Intel) and Windows.
 #
 # Trigger:
 #   * push a tag matching  v*   (e.g. v1.0.0) -> builds + creates a Release
@@ -13,12 +13,12 @@
 # -----------------------------------------------------------------------------
 # ASSET NAMING CONTRACT (what the website's /api/download must redirect to):
 #
-#   macOS Apple Silicon : LocalDictation-mac-arm64.dmg
-#   macOS Intel (x64)   : LocalDictation-mac-x64.dmg
-#   Windows x64         : LocalDictationSetup-windows-x64.exe
+#   macOS Apple Silicon : Voca-mac-arm64.dmg
+#   macOS Intel (x64)   : Voca-mac-x64.dmg
+#   Windows x64         : VocaSetup-windows-x64.exe
 #
 # These stable-named copies are always attached to the latest Release in
-# addition to the versioned originals (LocalDictation-<ver>-mac-arm64.dmg, etc.),
+# addition to the versioned originals (Voca-<ver>-mac-arm64.dmg, etc.),
 # so a download link never has to know the current version.
 # -----------------------------------------------------------------------------
 # CODE SIGNING (optional — builds run UNSIGNED until these secrets are set):
@@ -96,7 +96,7 @@ jobs:
           if [ -f dashboard/package.json ]; then
             echo "Building dashboard..."
             # This is an npm workspaces monorepo: the dashboard depends on the
-            # @local-dictation/ui workspace and the only lockfile lives at the
+            # @voca/ui workspace and the only lockfile lives at the
             # root, so install from the root (links all workspaces) then build
             # the dashboard workspace. (`npm --prefix dashboard ci` fails: no
             # lockfile in dashboard/ and the workspace dep can't resolve alone.)
@@ -161,7 +161,7 @@ jobs:
       - name: Build with PyInstaller
         shell: bash
         run: |
-          ${RUN_ARCH:-} ${PY:-python} -m PyInstaller --noconfirm --clean desktop/pyinstaller/LocalDictation.spec
+          ${RUN_ARCH:-} ${PY:-python} -m PyInstaller --noconfirm --clean desktop/pyinstaller/Voca.spec
 
       # --- Read the version for naming ----------------------------------------
       - name: Read version
@@ -177,7 +177,7 @@ jobs:
         if: matrix.target == 'mac'
         shell: bash
         run: |
-          BIN="dist/Local Dictation.app/Contents/MacOS/Local Dictation"
+          BIN="dist/Voca.app/Contents/MacOS/Voca"
           echo "Running selftest: $BIN --selftest"
           "$BIN" --selftest
           echo "selftest exit code: $?"
@@ -186,7 +186,7 @@ jobs:
         if: matrix.target == 'windows'
         shell: cmd
         run: |
-          "dist\Local Dictation\Local Dictation.exe" --selftest
+          "dist\Voca\Voca.exe" --selftest
           if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
 
       # =====================================================================
@@ -203,7 +203,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          APP="dist/Local Dictation.app"
+          APP="dist/Voca.app"
 
           # Import the Developer ID cert into a throwaway keychain.
           KEYCHAIN="$RUNNER_TEMP/build.keychain"
@@ -258,7 +258,7 @@ jobs:
           set -euo pipefail
           IDENTITY="$(security find-identity -v -p codesigning \
             | grep 'Developer ID Application' | head -1 | sed -E 's/.*"(.*)"/\1/')"
-          DMG="dist/LocalDictation-${{ steps.ver.outputs.version }}-mac-${{ matrix.arch }}.dmg"
+          DMG="dist/Voca-${{ steps.ver.outputs.version }}-mac-${{ matrix.arch }}.dmg"
           codesign --force --timestamp --sign "$IDENTITY" "$DMG"
           xcrun notarytool submit "$DMG" \
             --apple-id "${{ secrets.APPLE_ID }}" \
@@ -293,7 +293,7 @@ jobs:
           [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:WINDOWS_CERT_PFX))
           $signtool = (Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" `
             | Sort-Object FullName -Descending | Select-Object -First 1).FullName
-          $setup = "dist\LocalDictationSetup-${{ steps.ver.outputs.version }}.exe"
+          $setup = "dist\VocaSetup-${{ steps.ver.outputs.version }}.exe"
           & "$signtool" sign /f $pfx /p $env:WINDOWS_CERT_PASSWORD `
             /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 $setup
 
@@ -305,7 +305,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.label }}
-          path: dist/LocalDictation-${{ steps.ver.outputs.version }}-mac-${{ matrix.arch }}.dmg
+          path: dist/Voca-${{ steps.ver.outputs.version }}-mac-${{ matrix.arch }}.dmg
           if-no-files-found: error
 
       - name: Upload Windows artifact
@@ -313,7 +313,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.label }}
-          path: dist/LocalDictationSetup-${{ steps.ver.outputs.version }}.exe
+          path: dist/VocaSetup-${{ steps.ver.outputs.version }}.exe
           if-no-files-found: error
 
   # ===========================================================================
@@ -351,22 +351,22 @@ jobs:
           V="${{ steps.ver.outputs.version }}"
           mkdir -p out
 
-          ARM="artifacts/mac-arm64/LocalDictation-${V}-mac-arm64.dmg"
-          X64="artifacts/mac-x64/LocalDictation-${V}-mac-x64.dmg"
-          WIN="artifacts/windows-x64/LocalDictationSetup-${V}.exe"
+          ARM="artifacts/mac-arm64/Voca-${V}-mac-arm64.dmg"
+          X64="artifacts/mac-x64/Voca-${V}-mac-x64.dmg"
+          WIN="artifacts/windows-x64/VocaSetup-${V}.exe"
 
           # Versioned originals + stable-named copies the website resolves to.
           if [ -f "$ARM" ]; then
-            cp "$ARM" "out/LocalDictation-${V}-mac-arm64.dmg"
-            cp "$ARM" "out/LocalDictation-mac-arm64.dmg"
+            cp "$ARM" "out/Voca-${V}-mac-arm64.dmg"
+            cp "$ARM" "out/Voca-mac-arm64.dmg"
           fi
           if [ -f "$X64" ]; then
-            cp "$X64" "out/LocalDictation-${V}-mac-x64.dmg"
-            cp "$X64" "out/LocalDictation-mac-x64.dmg"
+            cp "$X64" "out/Voca-${V}-mac-x64.dmg"
+            cp "$X64" "out/Voca-mac-x64.dmg"
           fi
           if [ -f "$WIN" ]; then
-            cp "$WIN" "out/LocalDictationSetup-${V}-windows-x64.exe"  # versioned
-            cp "$WIN" "out/LocalDictationSetup-windows-x64.exe"        # stable
+            cp "$WIN" "out/VocaSetup-${V}-windows-x64.exe"  # versioned
+            cp "$WIN" "out/VocaSetup-windows-x64.exe"        # stable
           fi
 
           echo "Release assets:"
@@ -376,7 +376,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: Local Dictation ${{ steps.ver.outputs.version }}
+          name: Voca ${{ steps.ver.outputs.version }}
           generate_release_notes: true
           fail_on_unmatched_files: false
           files: |
@@ -395,8 +395,8 @@ jobs:
           repository: ${{ vars.RELEASES_REPO }}
           token: ${{ env.RELEASES_REPO_TOKEN }}
           tag_name: ${{ github.ref_name }}
-          name: Local Dictation ${{ steps.ver.outputs.version }}
-          body: "Installers for Local Dictation ${{ steps.ver.outputs.version }}. Source is maintained privately."
+          name: Voca ${{ steps.ver.outputs.version }}
+          body: "Installers for Voca ${{ steps.ver.outputs.version }}. Source is maintained privately."
           fail_on_unmatched_files: false
           files: |
             out/*.dmg

@@ -4,7 +4,7 @@ import { renderLegal } from "@/lib/legal";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "Local Dictation runs 100% on-device. Your voice and transcripts never leave your machine. Read the full policy.",
+    "Voca runs 100% on-device. Your voice and transcripts never leave your machine. Read the full policy.",
 };
 
 export default function PrivacyPage() {

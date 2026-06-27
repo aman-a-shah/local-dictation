@@ -1,4 +1,4 @@
-"""py2app build config for "Local Dictation.app".
+"""py2app build config for "Voca.app".
 
 Build with the helper script (recommended):
 
@@ -39,16 +39,16 @@ OPTIONS = {
     # into the bundle and sets CFBundleIconFile on a fresh build.
     "iconfile": "assets/AppIcon.icns",
     "plist": {
-        "CFBundleName": "Local Dictation",
-        "CFBundleDisplayName": "Local Dictation",
-        "CFBundleIdentifier": "com.local.dictation",
+        "CFBundleName": "Voca",
+        "CFBundleDisplayName": "Voca",
+        "CFBundleIdentifier": "com.voca.app",
         "CFBundleShortVersionString": VERSION,
         "CFBundleVersion": VERSION,
         # Menu-bar agent: no Dock icon, no window.
         "LSUIElement": True,
         "LSMinimumSystemVersion": "13.0",
         "NSMicrophoneUsageDescription": (
-            "Local Dictation records audio while you hold the fn key so it can "
+            "Voca records audio while you hold the fn key so it can "
             "transcribe your speech on-device."
         ),
         "NSHighResolutionCapable": True,
@@ -66,7 +66,7 @@ OPTIONS = {
 }
 
 setup(
-    name="Local Dictation",
+    name="Voca",
     app=APP,
     options={"py2app": OPTIONS},
     setup_requires=["py2app"],

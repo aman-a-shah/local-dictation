@@ -1,6 +1,6 @@
-# Contributing to Local Dictation
+# Contributing to Voca
 
-Thanks for your interest in improving Local Dictation. This is a privacy-first,
+Thanks for your interest in improving Voca. This is a privacy-first,
 100%-on-device dictation app, and that principle is non-negotiable: **no
 contribution should send user audio, transcripts, or personal data off the
 device, or add tracking/analytics.** Beyond that, contributions of all kinds are
@@ -86,6 +86,6 @@ builds are not yet code-signed; signing is planned.
 
 ## Reporting bugs and security issues
 
-- **Bugs / features:** open an issue at **https://github.com/aman-a-shah/local-transcription**.
+- **Bugs / features:** open an issue at **https://github.com/aman-a-shah/voca**.
 - **Security vulnerabilities:** do **not** open a public issue — follow
   `SECURITY.md`.

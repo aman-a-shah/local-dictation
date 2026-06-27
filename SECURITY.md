@@ -1,6 +1,6 @@
 # Security Policy
 
-We take the security of Local Dictation seriously. Because the app handles your
+We take the security of Voca seriously. Because the app handles your
 microphone and injects keystrokes on your behalf, we want any vulnerabilities
 found and fixed responsibly.
 
@@ -10,13 +10,13 @@ found and fixed responsibly.
 
 Instead, report them privately through GitHub's built-in channel: open a private
 security advisory at the repository's **Security → Report a vulnerability** page —
-**https://github.com/aman-a-shah/local-transcription/security/advisories/new**.
+**https://github.com/aman-a-shah/voca/security/advisories/new**.
 This keeps the report confidential until a fix is released.
 
 When reporting, please include:
 
 - a description of the issue and its potential impact,
-- the version of Local Dictation and your OS/architecture,
+- the version of Voca and your OS/architecture,
 - step-by-step reproduction instructions (and a proof of concept if you have
   one).
 
@@ -66,24 +66,24 @@ compute the checksum of your file and compare it to the published value:
 - **macOS / Linux:**
 
   ```bash
-  shasum -a 256 "Local Dictation.dmg"
+  shasum -a 256 "Voca.dmg"
   ```
 
 - **Windows (PowerShell):**
 
   ```powershell
-  Get-FileHash .\LocalDictation-Setup.exe -Algorithm SHA256
+  Get-FileHash .\Voca-Setup.exe -Algorithm SHA256
   ```
 
 If the value does not match the one published with the release, **do not run
 the file** — delete it and report it to us.
 
-Only download Local Dictation from the official website **https://local-transcription.vercel.app** or the
-official releases page at **https://github.com/aman-a-shah/local-transcription**.
+Only download Voca from the official website **https://getvoca.vercel.app** or the
+official releases page at **https://github.com/aman-a-shah/voca**.
 
 ## Scope
 
-This policy covers the Local Dictation application and its official build/release
+This policy covers the Voca application and its official build/release
 process. Vulnerabilities in third-party dependencies (see `ACKNOWLEDGEMENTS.md`)
 should generally be reported upstream, but please let us know if one affects
-Local Dictation so we can update.
+Voca so we can update.

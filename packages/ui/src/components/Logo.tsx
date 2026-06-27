@@ -7,20 +7,20 @@ type Props = {
    * website mark (gold bars). The two are deliberately different — the macOS
    * icon is white — so the in-app dashboard passes this to match the dock /
    * menu-bar icon exactly, while the website keeps its gold logo. Geometry here
-   * mirrors assets/make_icon.py (the icon's source of truth): the same 5-bar
+   * mirrors assets/make_icon.py (the icon's source of truth): the same 4-bar
    * waveform on the 32-grid, mapped into an inset squircle with Apple's corner
    * ratio.
    */
   appMark?: boolean;
 };
 
-// Shared 32-unit waveform grid (identical to assets/make_icon.py + the gold mark).
+// Shared 32-unit waveform grid (identical to assets/make_icon.py, the menu-bar
+// glyph, and web/public/favicon.svg — the 4-bar mark is the source of truth).
 const BARS: [number, number][] = [
   [8, 11],
-  [12, 6],
-  [16, 16],
-  [20, 8],
-  [24, 12],
+  [13, 6],
+  [18, 18],
+  [23, 9],
 ];
 
 // App-icon squircle proportions (Apple Big Sur): artwork sits inside a margin,
@@ -32,7 +32,7 @@ const RADIUS = SIDE * 0.2237;
 const BAR_W = 2.8 * SCALE;
 
 /**
- * Brand mark: a compact 5-bar waveform inside a rounded square (reads as "voice"
+ * Brand mark: a compact 4-bar waveform inside a rounded square (reads as "voice"
  * the way the menu-bar glyph does), optionally followed by the wordmark. Gold by
  * default (website); pass `appMark` for the white-on-squircle macOS app icon.
  */
@@ -93,7 +93,7 @@ export function Logo({ size = 28, withWordmark = true, className, appMark }: Pro
             fontSize: "1.02rem",
           }}
         >
-          Local Dictation
+          Voca
         </span>
       )}
     </span>

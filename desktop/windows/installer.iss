@@ -1,9 +1,9 @@
-; Inno Setup script for "Local Dictation" (Windows x64).
+; Inno Setup script for "Voca" (Windows x64).
 ;
 ; Packages the PyInstaller onedir build into a single setup .exe.
 ;
 ; Expects the built app folder at:
-;     dist\Local Dictation\           (contains "Local Dictation.exe" + deps)
+;     dist\Voca\           (contains "Voca.exe" + deps)
 ; relative to the repo root, and is invoked from the repo root in CI:
 ;
 ;     iscc /DAppVersion=1.0.0 desktop\windows\installer.iss
@@ -15,9 +15,9 @@
   #define AppVersion "0.0.0"
 #endif
 
-#define AppName "Local Dictation"
-#define AppPublisher "Local Dictation"
-#define AppExeName "Local Dictation.exe"
+#define AppName "Voca"
+#define AppPublisher "Voca"
+#define AppExeName "Voca.exe"
 ; Stable AppId GUID — keeps upgrades/uninstall consistent across versions.
 ; Do NOT change this once shipped.
 #define AppId "{{8E5C1F2A-3B47-4D9E-9C21-7A1F0B6E4D55}"
@@ -42,7 +42,7 @@ PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=dist
-OutputBaseFilename=LocalDictationSetup-{#AppVersion}
+OutputBaseFilename=VocaSetup-{#AppVersion}
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern

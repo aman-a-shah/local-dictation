@@ -16,7 +16,7 @@ from pathlib import Path
 from . import __version__
 from .bridge import DashboardAPI
 
-WINDOW_TITLE = "Local Dictation"
+WINDOW_TITLE = "Voca"
 
 
 def _assets_dir() -> Path | None:
@@ -40,7 +40,7 @@ def _assets_dir() -> Path | None:
 
 
 _PLACEHOLDER = """<!doctype html><html><head><meta charset="utf-8">
-<title>Local Dictation</title>
+<title>Voca</title>
 <style>
   html,body{margin:0;height:100%;background:#0b0b0f;color:#e7e7ea;
     font:15px/1.5 -apple-system,Segoe UI,system-ui,sans-serif;

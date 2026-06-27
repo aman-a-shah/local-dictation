@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   // The shared design system ships as TS/TSX source; transpile it here.
-  transpilePackages: ["@local-dictation/ui"],
+  transpilePackages: ["@voca/ui"],
   poweredByHeader: false,
 };
 

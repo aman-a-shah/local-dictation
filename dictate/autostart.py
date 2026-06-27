@@ -16,8 +16,8 @@ import platform
 import sys
 from pathlib import Path
 
-_LABEL = "com.local.dictation"  # macOS LaunchAgent label / Linux desktop id
-_DISPLAY = "LocalDictation"  # Windows Run value name / desktop Name
+_LABEL = "com.voca.app"  # macOS LaunchAgent label / Linux desktop id
+_DISPLAY = "Voca"  # Windows Run value name / desktop Name
 
 
 def _launch_command() -> list[str]:

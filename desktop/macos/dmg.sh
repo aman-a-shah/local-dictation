@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Build a distributable .dmg from the PyInstaller-built "Local Dictation.app".
+# Build a distributable .dmg from the PyInstaller-built "Voca.app".
 #
 # Usage:
 #   desktop/macos/dmg.sh [arch]
@@ -8,8 +8,8 @@
 #   arch  optional: "arm64" or "x64". If omitted it is detected from the host
 #         (`uname -m`: arm64 -> arm64, x86_64 -> x64).
 #
-# Expects the app at:   dist/Local Dictation.app   (relative to repo root)
-# Produces:             dist/LocalDictation-<version>-mac-<arch>.dmg
+# Expects the app at:   dist/Voca.app   (relative to repo root)
+# Produces:             dist/Voca-<version>-mac-<arch>.dmg
 #
 # Uses `create-dmg` if installed (prettier, drag-to-Applications layout),
 # otherwise falls back to plain `hdiutil`.
@@ -20,7 +20,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 cd "${REPO_ROOT}"
 
-APP_NAME="Local Dictation"
+APP_NAME="Voca"
 APP_PATH="dist/${APP_NAME}.app"
 
 # --- arch -------------------------------------------------------------------
@@ -37,12 +37,12 @@ fi
 VERSION="$(sed -n 's/^__version__[[:space:]]*=[[:space:]]*["'\'']\([^"'\'']*\)["'\''].*/\1/p' dictate/__init__.py)"
 VERSION="${VERSION:-0.0.0}"
 
-DMG_NAME="LocalDictation-${VERSION}-mac-${ARCH}.dmg"
+DMG_NAME="Voca-${VERSION}-mac-${ARCH}.dmg"
 DMG_PATH="dist/${DMG_NAME}"
 
 if [[ ! -d "${APP_PATH}" ]]; then
   echo "ERROR: ${APP_PATH} not found. Build it first with PyInstaller:" >&2
-  echo "  pyinstaller --noconfirm --clean desktop/pyinstaller/LocalDictation.spec" >&2
+  echo "  pyinstaller --noconfirm --clean desktop/pyinstaller/Voca.spec" >&2
   exit 1
 fi
 

@@ -2,17 +2,17 @@
 
 **Effective date: 2026-06-18**
 
-These Terms of Use ("Terms") govern your use of the Local Dictation software
+These Terms of Use ("Terms") govern your use of the Voca software
 ("the Software"). By downloading, installing, or using the Software, you agree
 to these Terms. If you do not agree, do not use the Software.
 
-This is a plain-language summary of a simple arrangement: Local Dictation is
+This is a plain-language summary of a simple arrangement: Voca is
 free, open-source software provided as-is, you can use it freely, and we can't
 take responsibility for what it does on your machine. The full terms follow.
 
 ## 1. License to use
 
-Local Dictation is open-source software released under the **MIT License** (see
+Voca is open-source software released under the **MIT License** (see
 the `LICENSE` file). Subject to that license, you may use, copy, modify, and
 distribute the Software free of charge. These Terms describe the practical
 conditions of using the official builds; the MIT License is the authoritative
@@ -90,7 +90,7 @@ provide support, maintenance, or future versions.
 
 ## 9. Governing law
 
-Local Dictation is free, open-source software offered to users worldwide. No
+Voca is free, open-source software offered to users worldwide. No
 specific governing-law jurisdiction is designated. You are responsible for using
 the Software in compliance with the laws that apply to you in your own location.
 The disclaimers and limitations of liability in these Terms apply to the fullest
@@ -106,4 +106,4 @@ Software after changes means you accept the updated Terms.
 ## 11. Contact
 
 Questions about these Terms? Open an issue at
-**https://github.com/aman-a-shah/local-transcription/issues**.
+**https://github.com/aman-a-shah/voca/issues**.

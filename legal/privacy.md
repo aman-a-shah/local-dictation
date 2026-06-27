@@ -2,7 +2,7 @@
 
 **Effective date: 2026-06-18**
 
-Local Dictation is built on one promise: **your voice never leaves your
+Voca is built on one promise: **your voice never leaves your
 device.** This policy explains, in plain language, exactly what the app does
 with your data — and, just as importantly, what it does *not* do.
 
@@ -52,9 +52,9 @@ transcriptions in a SQLite database on your own machine. Each entry contains:
 
 This database is stored in your operating system's standard app-data folder:
 
-- **macOS:** `~/Library/Application Support/LocalDictation`
-- **Windows:** `%APPDATA%\LocalDictation`
-- **Linux:** `~/.local/share/LocalDictation`
+- **macOS:** `~/Library/Application Support/Voca`
+- **Windows:** `%APPDATA%\Voca`
+- **Linux:** `~/.local/share/Voca`
 
 This history **never leaves your device.** It is not synced, backed up by us,
 or transmitted anywhere. It exists purely so the dashboard can show you your
@@ -68,7 +68,7 @@ own activity.
   in the folder above.
 
 The app also writes ordinary diagnostic **log files** (for example
-`~/Library/Logs/LocalDictation.log` on macOS) to help you troubleshoot. These
+`~/Library/Logs/Voca.log` on macOS) to help you troubleshoot. These
 stay on your device and are not sent anywhere.
 
 ## 3. What leaves your device
@@ -107,14 +107,14 @@ requests whatsoever during normal use.
 
 ## 4. No tracking, analytics, ads, or data sharing
 
-Local Dictation contains **no** analytics SDKs, **no** crash-reporting
+Voca contains **no** analytics SDKs, **no** crash-reporting
 services, **no** advertising, and **no** third-party tracking of any kind. We
 do not build profiles, we do not sell or share data (there is no data to sell),
 and there are no third parties receiving your information.
 
 ## 5. Children's privacy
 
-Local Dictation is a general-purpose utility and is not directed at children.
+Voca is a general-purpose utility and is not directed at children.
 Because the app collects no personal information and requires no account, it
 does not knowingly collect data from children or anyone else. If you believe a
 child has somehow provided personal information through the app, please contact
@@ -140,5 +140,5 @@ inspect exactly what it does in the source code.
 ## 8. Contact
 
 Questions about privacy? Open an issue at
-**https://github.com/aman-a-shah/local-transcription/issues**. For sensitive
+**https://github.com/aman-a-shah/voca/issues**. For sensitive
 reports, use the repository's private security advisory channel.

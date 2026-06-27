@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import "@local-dictation/ui/tokens.css";
-import "@local-dictation/ui/components.css";
-import "@local-dictation/ui/fonts";
+import "@voca/ui/tokens.css";
+import "@voca/ui/components.css";
+import "@voca/ui/fonts";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { GoogleAnalytics } from "@next/third-parties/google";
@@ -16,15 +16,15 @@ const description =
   "Push-to-talk voice typing that runs 100% on your device. Hold a key, speak, release — your words are transcribed locally and pasted at your cursor. No cloud, no account, your voice never leaves your machine.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://local-dictation.vercel.app"),
+  metadataBase: new URL("https://getvoca.vercel.app"),
   title: {
-    default: "Local Dictation — private, on-device voice typing",
-    template: "%s — Local Dictation",
+    default: "Voca — private, on-device voice typing",
+    template: "%s — Voca",
   },
   description,
-  applicationName: "Local Dictation",
+  applicationName: "Voca",
   openGraph: {
-    title: "Local Dictation — private, on-device voice typing",
+    title: "Voca — private, on-device voice typing",
     description,
     type: "website",
   },

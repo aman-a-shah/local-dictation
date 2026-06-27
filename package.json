@@ -1,8 +1,8 @@
 {
-  "name": "local-dictation-monorepo",
+  "name": "voca-monorepo",
   "private": true,
   "version": "1.0.2",
-  "description": "Local Dictation — website, in-app dashboard, and shared design system.",
+  "description": "Voca — website, in-app dashboard, and shared design system.",
   "workspaces": [
     "packages/*",
     "web",

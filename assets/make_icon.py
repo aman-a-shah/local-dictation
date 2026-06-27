@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Generate the Local Dictation app icon: the website brand mark (packages/ui
-Logo.tsx) — a 5-bar audio *waveform* on a dark (#19191f) squircle — rendered in
+"""Generate the Voca app icon: the website brand mark (packages/ui
+Logo.tsx) — a 4-bar audio *waveform* on a dark (#19191f) squircle — rendered in
 the macOS Big Sur style. Same mark as the website, except the bars are WHITE
 here instead of gold.
 
@@ -34,8 +34,8 @@ BG = (0.098, 0.098, 0.122, 1.0)   # #19191f
 # bar centers + heights on a 32-unit grid. The website renders them gold; the
 # app renders them WHITE (the one intentional difference between the two marks).
 WEB_GRID = 32.0
-BAR_CENTERS = (8, 12, 16, 20, 24)   # x of each bar's center on the 32-grid
-BAR_HEIGHTS = (11, 6, 16, 8, 12)    # height of each bar on the 32-grid
+BAR_CENTERS = (8, 13, 18, 23)       # x of each bar's center on the 32-grid
+BAR_HEIGHTS = (11, 6, 18, 9)        # height of each bar on the 32-grid
 BAR_W = 2.8                          # bar width on the 32-grid (rx = BAR_W / 2)
 
 # Apple's icon grid: artwork sits inside a margin, not edge-to-edge.

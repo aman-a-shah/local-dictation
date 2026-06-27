@@ -17,7 +17,7 @@ service with their voice. Many chose this specifically *because* it's local.
 
 ## Product Purpose
 
-Local Dictation is push-to-talk voice typing that runs 100% on-device. Hold a key,
+Voca is push-to-talk voice typing that runs 100% on-device. Hold a key,
 speak, release — your words are transcribed locally (Apple MLX on Apple Silicon,
 faster-whisper elsewhere) and pasted wherever your cursor is. No cloud, no account,
 no audio ever leaving the machine. The website's job is to make that promise

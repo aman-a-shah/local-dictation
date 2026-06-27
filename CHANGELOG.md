@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to **Local Dictation** are documented here. This project
+All notable changes to **Voca** are documented here. This project
 adheres to [Semantic Versioning](https://semver.org/).
 
 ## [1.0.2] - 2026-06-25
@@ -62,13 +62,13 @@ adheres to [Semantic Versioning](https://semver.org/).
 - Cross-platform distributable packaging:
   - macOS `.dmg` for Apple Silicon and Intel (PyInstaller `.app` bundle,
     menu-bar agent, microphone usage description, UTF-8 environment).
-  - Windows installer (`LocalDictationSetup-<version>.exe`) via Inno Setup, with
+  - Windows installer (`VocaSetup-<version>.exe`) via Inno Setup, with
     Start Menu shortcut, optional desktop icon, and optional run-at-login.
 - GitHub Actions release workflow (`v*` tag → build, `--selftest` smoke test,
   package, publish a Release with stable-named assets for the download site).
 - Optional, secret-gated code signing + notarization (macOS) and Authenticode
   signing (Windows); builds run unsigned when secrets are absent.
 
-[1.0.2]: https://github.com/aman-a-shah/local-dictation/releases/tag/v1.0.2
-[1.0.1]: https://github.com/aman-a-shah/local-dictation/releases/tag/v1.0.1
-[1.0.0]: https://github.com/aman-a-shah/local-transcription/releases/tag/v1.0.0
+[1.0.2]: https://github.com/aman-a-shah/voca/releases/tag/v1.0.2
+[1.0.1]: https://github.com/aman-a-shah/voca/releases/tag/v1.0.1
+[1.0.0]: https://github.com/aman-a-shah/voca/releases/tag/v1.0.0

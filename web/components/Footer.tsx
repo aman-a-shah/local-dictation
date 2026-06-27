@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Logo } from "@local-dictation/ui";
+import { Logo } from "@voca/ui";
 import { REPO } from "@/lib/releases";
 import styles from "./Footer.module.css";
 
@@ -36,7 +36,7 @@ export function Footer() {
         </nav>
       </div>
       <div className={styles.bottom}>
-        <span>© {new Date().getFullYear()} Local Dictation</span>
+        <span>© {new Date().getFullYear()} Voca</span>
         <span className={styles.mono}>Runs 100% on-device · No telemetry</span>
       </div>
     </footer>

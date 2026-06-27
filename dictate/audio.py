@@ -97,10 +97,16 @@ class Recorder:
         The original design kept one stream forever, but a PortAudio stream is
         pinned to the device it was opened on. Over days the user (un)plugs
         headphones / monitors / AirPods; the old stream then either errors or
-        quietly delivers silence ("stubborn, waveform won't react"). So before
-        each take we rebuild the stream whenever the default input changed or the
-        previous stream is gone. Building a fresh 16 kHz mono input stream costs
-        only a few ms, paid while the key is held — well below human reaction time.
+        quietly delivers silence ("stubborn, waveform won't react"). So we
+        rebuild the stream whenever the default input changed or the previous
+        stream is gone.
+
+        IMPORTANT: this calls ``sd.query_devices``, a synchronous CoreAudio
+        query that can cost a couple hundred ms. Keep it OFF the key-press hot
+        path — ``start`` must not call it for a warm stream. The device-change
+        check runs instead at idle in ``pause`` (and once at startup in
+        ``prewarm``), so a press only ever pays CoreAudio's stream start, never
+        the device query.
         """
         current = self._current_input_id()
         if self._stream is not None and current != self._stream_device:
@@ -136,13 +142,26 @@ class Recorder:
             self._recording = True
             self._start_time = time.monotonic()
 
-        # Build/refresh and start the stream. If the device vanished out from
-        # under us the start can raise — rebuild once from scratch and retry so a
+        # Warm fast path: a stream left running between takes (see stop/pause)
+        # captures the instant we flipped _recording on above. No device query,
+        # no CoreAudio start — this is the common back-to-back case and must add
+        # no perceptible latency between pressing fn and your voice landing.
+        stream = self._stream
+        if stream is not None and stream.active:
+            return
+
+        # Cold path: the idle window stopped the stream (or none exists yet).
+        # Pay CoreAudio's ~180 ms start here, while the key is held before you
+        # speak. We deliberately do NOT re-query the default device on this path
+        # — that query is a large slice of the press-to-capture lag and runs off
+        # the hot path in pause()/prewarm() instead, so by now the stream is
+        # already bound to the right device. If the device vanished while idle,
+        # start() raises and we rebuild once (which does query) and retry, so a
         # single bad take can't wedge capture until the app is restarted.
         try:
-            self._ensure_stream()
-            if not self._stream.active:
-                self._stream.start()
+            if self._stream is None:
+                self._ensure_stream()
+            self._stream.start()
         except Exception as exc:
             print(f"[audio] stream start failed ({exc}); rebuilding", flush=True)
             self._discard_stream()
@@ -193,17 +212,32 @@ class Recorder:
         Keeps the stream object open so the next start only rebuilds if the default
         device changed meanwhile. Never pauses mid-take. Best-effort: a dead device
         is discarded so the next start builds a fresh one.
+
+        This is also where the (potentially slow) default-device check is paid:
+        we're already idle and off the key-press path, so re-binding the stopped
+        stream to the current default mic here means the next press's ``start``
+        only pays CoreAudio's stream start, never the device query.
         """
         with self._lock:
             if self._recording:
                 return
-        if self._stream is not None:
-            try:
-                if self._stream.active:
-                    self._stream.stop()
-            except Exception as exc:
-                print(f"[audio] stream pause failed ({exc}); will rebuild", flush=True)
-                self._discard_stream()
+        if self._stream is None:
+            return
+        try:
+            if self._stream.active:
+                self._stream.stop()
+        except Exception as exc:
+            print(f"[audio] stream pause failed ({exc}); will rebuild", flush=True)
+            self._discard_stream()
+            return
+        # Mic is released; now (off the hot path) re-bind to the current default
+        # input if it changed while we were warm, so the next cold start is just
+        # a stream.start(). A no-op when the device is unchanged.
+        try:
+            self._ensure_stream()
+        except Exception as exc:
+            print(f"[audio] device refresh on pause failed ({exc}); will rebuild", flush=True)
+            self._discard_stream()
 
     def close(self) -> None:
         self._discard_stream()

@@ -41,7 +41,7 @@ from .core import DictationEngine
 from .hotkey import FnHotkey
 from .overlay import Overlay
 
-_LOG_PATH = os.path.expanduser("~/Library/Logs/LocalDictation.log")
+_LOG_PATH = os.path.expanduser("~/Library/Logs/Voca.log")
 
 
 def _log(message: str) -> None:
@@ -82,23 +82,23 @@ def _arm_deadman(seconds: float) -> None:
 # images so they sit natively in the menu bar (auto-tinting for light/dark,
 # matching the system's own icons) instead of a loud emoji. A `waveform` mark
 # reads instantly as "voice"; the busy/recording/error states vary it subtly.
-# "ld.waveform" is our OWN 5-bar mark (drawn below), not an SF Symbol: Apple's
+# "ld.waveform" is our OWN 4-bar mark (drawn below), not an SF Symbol: Apple's
 # `waveform` symbol has many bars and reads as a *different* logo than the app
-# icon's 5-bar waveform (assets/make_icon.py). The idle/ready glyph — the one
+# icon's 4-bar waveform (assets/make_icon.py). The idle/ready glyph — the one
 # parked in the menu bar whenever the app is running — uses ours so it matches.
 _SYMBOL = {
     "loading": "ellipsis",                 # warming the model
-    "ready": "ld.waveform",                # idle, waiting for fn (our 5-bar mark)
+    "ready": "ld.waveform",                # idle, waiting for fn (our 4-bar mark)
     "listening": "mic.fill",               # recording your voice
     "transcribing": "ellipsis",            # model is thinking
     "error": "exclamationmark.triangle",   # something went wrong
     "blocked": "exclamationmark.triangle",  # missing a permission
 }
 
-# The app icon's 5-bar waveform on a 32-unit grid (identical to make_icon.py and
+# The app icon's 4-bar waveform on a 32-unit grid (identical to make_icon.py and
 # the website/dashboard Logo): bar centers + heights, bar width.
-_WAVE_CENTERS = (8, 12, 16, 20, 24)
-_WAVE_HEIGHTS = (11, 6, 16, 8, 12)
+_WAVE_CENTERS = (8, 13, 18, 23)
+_WAVE_HEIGHTS = (11, 6, 18, 9)
 _WAVE_BAR_W = 2.8
 
 # Emoji fallback if SF Symbols aren't available (very old macOS).
@@ -115,7 +115,7 @@ _SYMBOL_CACHE: dict = {}
 
 
 def _waveform_image():
-    """Our 5-bar waveform as a template NSImage, matching the macOS app icon.
+    """Our 4-bar waveform as a template NSImage, matching the macOS app icon.
 
     Drawn (not an SF Symbol) because Apple's `waveform` symbol has many bars and
     reads as a different mark. Template image → the menu bar tints it for
@@ -126,7 +126,7 @@ def _waveform_image():
         return _SYMBOL_CACHE["ld.waveform"]
 
     pad = 1.0
-    scale = 14.0 / max(_WAVE_HEIGHTS)        # tallest bar (16u) -> 14 pt
+    scale = 14.0 / max(_WAVE_HEIGHTS)        # tallest bar (18u) -> 14 pt
     bar_w = _WAVE_BAR_W * scale
     left_edge = _WAVE_CENTERS[0] - _WAVE_BAR_W / 2.0
     cluster_w = ((_WAVE_CENTERS[-1] + _WAVE_BAR_W / 2.0) - left_edge) * scale
@@ -165,7 +165,7 @@ def _waveform_image():
 def _symbol_image(name):
     """A template NSImage for the menu bar (cached), or None if unavailable.
 
-    ``ld.waveform`` is our own drawn 5-bar mark; everything else is an SF Symbol.
+    ``ld.waveform`` is our own drawn 4-bar mark; everything else is an SF Symbol.
     """
     if name == "ld.waveform":
         return _waveform_image()
@@ -225,7 +225,7 @@ class DictationController(NSObject):
         menu.addItem_(hint)
         menu.addItem_(NSMenuItem.separatorItem())
 
-        quit_item = self._item("Quit Local Dictation", "quitApp:")
+        quit_item = self._item("Quit Voca", "quitApp:")
         quit_item.setKeyEquivalent_("q")
         menu.addItem_(quit_item)
 
@@ -272,7 +272,7 @@ class DictationController(NSObject):
             self._show_state("blocked", "Enable Microphone in System Settings")
             self._alert(
                 "Microphone access is off",
-                "Local Dictation needs the microphone to hear you. Turn it on under "
+                "Voca needs the microphone to hear you. Turn it on under "
                 "System Settings → Privacy & Security → Microphone, then relaunch.",
             )
         elif status != permissions.AUTHORIZED:
@@ -293,7 +293,7 @@ class DictationController(NSObject):
             permissions.request_accessibility()  # opens the System Settings deep-link
             self._alert(
                 "One more permission needed",
-                "Local Dictation can hear the fn key but can't paste text yet. "
+                "Voca can hear the fn key but can't paste text yet. "
                 "Add it under System Settings → Privacy & Security → Accessibility "
                 "(toggle it ON), then quit and relaunch the app.",
             )
@@ -317,7 +317,7 @@ class DictationController(NSObject):
             self._show_state("blocked", "Needs Accessibility permission")
             self._alert(
                 "Accessibility permission needed",
-                f"{exc}\n\nAdd “Local Dictation” under System Settings → Privacy & "
+                f"{exc}\n\nAdd “Voca” under System Settings → Privacy & "
                 "Security → Accessibility, then quit and relaunch the app.",
             )
 
@@ -462,7 +462,7 @@ class DictationController(NSObject):
             self._teardown()
         except Exception:
             _log("terminate: teardown failed\n" + _traceback())
-        _log("=== Local Dictation exiting ===")
+        _log("=== Voca exiting ===")
         os._exit(0)
 
     @objc.python_method
@@ -531,7 +531,7 @@ def _acquire_single_instance() -> bool:
     audio and doubled text insertion.
     """
     global _INSTANCE_LOCK
-    path = os.path.join(tempfile.gettempdir(), "local-dictation.lock")
+    path = os.path.join(tempfile.gettempdir(), "voca.lock")
     _INSTANCE_LOCK = open(path, "w")
     try:
         fcntl.flock(_INSTANCE_LOCK, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -545,7 +545,7 @@ def main() -> int:
     # Accessory = menu-bar presence, no Dock icon, no window.
     app.setActivationPolicy_(NSApplicationActivationPolicyAccessory)
 
-    _log("=== Local Dictation launching ===")
+    _log("=== Voca launching ===")
     if not _acquire_single_instance():
         _log("another instance is already running — exiting")
         return 0

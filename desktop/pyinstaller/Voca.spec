@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-"""PyInstaller spec for "Local Dictation" — one spec, three targets.
+"""PyInstaller spec for "Voca" — one spec, three targets.
 
 This single spec drives the distributable builds on all supported platforms; it
 branches on ``sys.platform`` / ``platform.machine()`` so the same file works for:
@@ -10,7 +10,7 @@ branches on ``sys.platform`` / ``platform.machine()`` so the same file works for
 
 Run from the repo root:
 
-    pyinstaller --noconfirm --clean desktop/pyinstaller/LocalDictation.spec
+    pyinstaller --noconfirm --clean desktop/pyinstaller/Voca.spec
 
 Notes / pitfalls handled below:
   * faster_whisper + ctranslate2 need their bundled data + dynamic libs, and
@@ -44,8 +44,8 @@ IS_MAC = sys.platform == "darwin"
 IS_WIN = sys.platform.startswith("win")
 IS_MAC_ARM = IS_MAC and platform.machine() == "arm64"
 
-APP_NAME = "Local Dictation"
-BUNDLE_ID = "com.local.dictation"
+APP_NAME = "Voca"
+BUNDLE_ID = "com.voca.app"
 
 # Read the version from dictate/__init__.py without importing the package
 # (importing would pull in heavy native deps just to read a string).
@@ -266,7 +266,7 @@ if IS_MAC:
             "LSMinimumSystemVersion": "13.0",
             "NSHighResolutionCapable": True,
             "NSMicrophoneUsageDescription": (
-                "Local Dictation records audio while you hold the fn key so it "
+                "Voca records audio while you hold the fn key so it "
                 "can transcribe your speech on-device."
             ),
             # LaunchServices starts apps with no locale; force UTF-8 so file I/O
@@ -290,7 +290,7 @@ else:
         a.scripts,
         [],
         exclude_binaries=True,
-        name=APP_NAME,  # produces "Local Dictation.exe"
+        name=APP_NAME,  # produces "Voca.exe"
         debug=False,
         bootloader_ignore_signals=False,
         strip=False,

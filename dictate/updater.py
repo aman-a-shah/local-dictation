@@ -25,7 +25,7 @@ from pathlib import Path
 
 # Default endpoint — override via DICTATE_UPDATE_URL.
 DEFAULT_BASE = os.environ.get(
-    "DICTATE_UPDATE_URL", "https://local-transcription.vercel.app"
+    "DICTATE_UPDATE_URL", "https://getvoca.vercel.app"
 )
 _TIMEOUT = 6  # seconds; never block the UI for long
 
@@ -78,7 +78,7 @@ def check_for_update(current_version: str) -> dict:
 def download_and_open(url: str) -> str:
     """Download the installer to a temp file and hand it to the OS to run."""
     suffix = Path(urllib.parse.urlparse(url).path).suffix or ".bin"
-    tmp = Path(tempfile.gettempdir()) / f"LocalDictation-update{suffix}"
+    tmp = Path(tempfile.gettempdir()) / f"Voca-update{suffix}"
     ctx = ssl.create_default_context()
     with urllib.request.urlopen(url, timeout=60, context=ctx) as resp, open(tmp, "wb") as fh:
         fh.write(resp.read())

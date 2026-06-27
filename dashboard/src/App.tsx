@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Logo, Button, Waveform } from "@local-dictation/ui";
+import { Logo, Button, Waveform } from "@voca/ui";
 import { api, nativeReady } from "./api";
 import type { Stats, Transcription, Settings, Meta, UpdateInfo } from "./api";
 
@@ -103,12 +103,12 @@ function Overview({ meta, onSeeAll }: { meta: Meta | null; onSeeAll: () => void 
 
   return (
     <>
-      <section className="hero fade-up" aria-label="Local Dictation">
+      <section className="hero fade-up" aria-label="Voca">
         <div className="hero__grid" aria-hidden="true" />
         <div className="hero__copy">
           <div className="hero__brand">
             <Logo size={30} appMark withWordmark={false} />
-            <span className="hero__title">Local Dictation</span>
+            <span className="hero__title">Voca</span>
           </div>
           <p className="hero__sub">
             Push-to-talk voice typing that runs entirely on your machine. Hold {meta?.hotkey_label ?? "your key"},
@@ -357,7 +357,7 @@ function SettingsView({ meta }: { meta: Meta | null }) {
         <Toggle label="Trailing space" desc="Add a space after each insert for continuous dictation." checked={s.append_space} onChange={(v) => update({ append_space: v })} />
         <Toggle label="Restore clipboard" desc="Put your previous clipboard back after pasting." checked={s.restore_clipboard} onChange={(v) => update({ restore_clipboard: v })} />
         <Toggle label="Sound cues" desc="Soft sounds when listening starts and text is inserted." checked={s.sound_feedback} onChange={(v) => update({ sound_feedback: v })} />
-        <Toggle label="Run at login" desc="Start Local Dictation automatically when you sign in." checked={s.run_at_login} onChange={(v) => update({ run_at_login: v })} />
+        <Toggle label="Run at login" desc="Start Voca automatically when you sign in." checked={s.run_at_login} onChange={(v) => update({ run_at_login: v })} />
         <Toggle label="Save history" desc="Keep a local record of transcriptions for this dashboard." checked={s.save_history} onChange={(v) => update({ save_history: v })} />
       </div>
 

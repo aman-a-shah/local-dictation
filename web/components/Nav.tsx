@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Logo, ButtonLink, useScrollProgress } from "@local-dictation/ui";
+import { Logo, ButtonLink, useScrollProgress } from "@voca/ui";
 import styles from "./Nav.module.css";
 
 export function Nav() {
@@ -9,7 +9,7 @@ export function Nav() {
   return (
     <header className={styles.nav}>
       <div className={styles.inner}>
-        <Link href="/" aria-label="Local Dictation home" className={styles.brand}>
+        <Link href="/" aria-label="Voca home" className={styles.brand}>
           <Logo size={26} />
         </Link>
         <nav className={styles.links} aria-label="Primary">

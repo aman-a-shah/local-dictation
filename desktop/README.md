@@ -1,6 +1,6 @@
 # Desktop packaging
 
-Distributable builds of **Local Dictation** for macOS (Apple Silicon + Intel)
+Distributable builds of **Voca** for macOS (Apple Silicon + Intel)
 and Windows. These produce the signed/unsigned installers a website can hand
 to users. (Local mac dev still uses the py2app alias build — `./build_app.sh` /
 `setup.py` — which is unchanged.)
@@ -9,11 +9,11 @@ to users. (Local mac dev still uses the py2app alias build — `./build_app.sh` 
 
 | Path | What it does |
 | --- | --- |
-| `pyinstaller/LocalDictation.spec` | One PyInstaller spec for all three targets. Branches on `sys.platform` / `platform.machine()`: mac → `.app` bundle, Windows → onedir `.exe`. Bundles `dashboard/dist/**` under a `dashboard/` folder; pulls hidden imports + data for faster-whisper, ctranslate2, sounddevice (PortAudio), pywebview, scipy/numpy, pyobjc (mac), pynput/pystray/pywin32 (win), and MLX (Apple Silicon only). Model weights are NOT bundled — downloaded on first run. |
+| `pyinstaller/Voca.spec` | One PyInstaller spec for all three targets. Branches on `sys.platform` / `platform.machine()`: mac → `.app` bundle, Windows → onedir `.exe`. Bundles `dashboard/dist/**` under a `dashboard/` folder; pulls hidden imports + data for faster-whisper, ctranslate2, sounddevice (PortAudio), pywebview, scipy/numpy, pyobjc (mac), pynput/pystray/pywin32 (win), and MLX (Apple Silicon only). Model weights are NOT bundled — downloaded on first run. |
 | `pyinstaller/AppIcon.ico` | Windows icon, generated in CI from `assets/AppIcon.iconset/icon_256x256.png`. Not checked in. |
-| `macos/dmg.sh` | Builds `LocalDictation-<version>-mac-<arch>.dmg` from the built `.app` (create-dmg if present, else hdiutil). |
+| `macos/dmg.sh` | Builds `Voca-<version>-mac-<arch>.dmg` from the built `.app` (create-dmg if present, else hdiutil). |
 | `macos/entitlements.plist` | Hardened-runtime entitlements (mic input + JIT / unsigned-exec-memory / disable-library-validation for Python+MLX). Used only when signing. |
-| `windows/installer.iss` | Inno Setup script → `LocalDictationSetup-<version>.exe`. Installs to `Program Files\Local Dictation`, Start Menu shortcut, optional desktop icon, optional "run at login" (HKCU Run key), uninstaller, stable AppId GUID. |
+| `windows/installer.iss` | Inno Setup script → `VocaSetup-<version>.exe`. Installs to `Program Files\Voca`, Start Menu shortcut, optional desktop icon, optional "run at login" (HKCU Run key), uninstaller, stable AppId GUID. |
 | `../.github/workflows/release.yml` | CI: build + smoke-test (`--selftest`) + package + (optional) sign + publish a Release. |
 
 ## Build locally
@@ -30,9 +30,9 @@ npm --prefix dashboard ci && npm --prefix dashboard run build
 ```bash
 pip install -r requirements.txt              # Intel mac: requirements-macos-intel.txt
 pip install pyinstaller
-pyinstaller --noconfirm --clean desktop/pyinstaller/LocalDictation.spec
+pyinstaller --noconfirm --clean desktop/pyinstaller/Voca.spec
 # smoke test
-"dist/Local Dictation.app/Contents/MacOS/Local Dictation" --selftest
+"dist/Voca.app/Contents/MacOS/Voca" --selftest
 # package (arch auto-detected; or pass arm64 / x64)
 desktop/macos/dmg.sh
 ```
@@ -44,9 +44,9 @@ pip install -r requirements-windows.txt
 pip install pyinstaller Pillow
 # generate the icon once
 python -c "from PIL import Image; Image.open('assets/AppIcon.iconset/icon_256x256.png').convert('RGBA').save('desktop/pyinstaller/AppIcon.ico', sizes=[(16,16),(32,32),(48,48),(64,64),(128,128),(256,256)])"
-pyinstaller --noconfirm --clean desktop\pyinstaller\LocalDictation.spec
+pyinstaller --noconfirm --clean desktop\pyinstaller\Voca.spec
 # smoke test
-"dist\Local Dictation\Local Dictation.exe" --selftest
+"dist\Voca\Voca.exe" --selftest
 # package (needs Inno Setup 6 -> ISCC.exe on PATH or in Program Files)
 iscc /DAppVersion=1.0.0 desktop\windows\installer.iss
 ```
@@ -67,12 +67,12 @@ matching asset on the latest Release:
 
 | Target | Stable asset name |
 | --- | --- |
-| macOS Apple Silicon | `LocalDictation-mac-arm64.dmg` |
-| macOS Intel (x64) | `LocalDictation-mac-x64.dmg` |
-| Windows x64 | `LocalDictationSetup-windows-x64.exe` |
+| macOS Apple Silicon | `Voca-mac-arm64.dmg` |
+| macOS Intel (x64) | `Voca-mac-x64.dmg` |
+| Windows x64 | `VocaSetup-windows-x64.exe` |
 
-Versioned copies are also attached: `LocalDictation-<version>-mac-arm64.dmg`,
-`LocalDictation-<version>-mac-x64.dmg`, `LocalDictationSetup-<version>-windows-x64.exe`.
+Versioned copies are also attached: `Voca-<version>-mac-arm64.dmg`,
+`Voca-<version>-mac-x64.dmg`, `VocaSetup-<version>-windows-x64.exe`.
 
 ## Signing (optional — builds work UNSIGNED without these)
 

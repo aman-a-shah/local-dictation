@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Kbd } from "@local-dictation/ui";
+import { Kbd } from "@voca/ui";
 import { REPO } from "@/lib/releases";
 import styles from "./faq.module.css";
 
 export const metadata: Metadata = {
   title: "FAQ",
-  description: "Common questions about Local Dictation — privacy, accuracy, platforms, and setup.",
+  description: "Common questions about Voca — privacy, accuracy, platforms, and setup.",
 };
 
 const FAQS: { q: string; a: React.ReactNode }[] = [
@@ -84,7 +84,7 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
   },
   {
     q: "How do I uninstall it?",
-    a: "macOS: quit from the menu bar and move the app to the Trash. Windows: use Add/Remove Programs. To remove the model and history too, delete the LocalDictation folder in your app-data directory.",
+    a: "macOS: quit from the menu bar and move the app to the Trash. Windows: use Add/Remove Programs. To remove the model and history too, delete the Voca folder in your app-data directory.",
   },
 ];
 

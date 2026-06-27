@@ -24,11 +24,11 @@ _LOG = log_path()
 
 # Tray tooltip per engine state.
 _STATUS = {
-    "loading": "Local Dictation — loading model…",
-    "ready": "Local Dictation — ready (hold {key})",
-    "listening": "Local Dictation — listening…",
-    "transcribing": "Local Dictation — transcribing…",
-    "error": "Local Dictation — error",
+    "loading": "Voca — loading model…",
+    "ready": "Voca — ready (hold {key})",
+    "listening": "Voca — listening…",
+    "transcribing": "Voca — transcribing…",
+    "error": "Voca — error",
 }
 
 
@@ -68,7 +68,9 @@ def _make_icon_image():
     size = 64
     img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    bars = [0.35, 0.7, 1.0, 0.55, 0.85, 0.4]
+    # 4-bar waveform matching the brand mark (web/public/favicon.svg): heights
+    # 11/6/18/9 on the 32-grid, normalized to the tallest bar.
+    bars = [11 / 18, 6 / 18, 1.0, 9 / 18]
     n = len(bars)
     bw = 5
     gap = (size - n * bw) // (n + 1)
@@ -160,7 +162,7 @@ class TrayApp:
         import pystray
 
         self.icon = pystray.Icon(
-            "local-dictation",
+            "voca",
             icon=_make_icon_image(),
             title=self._state_title,
             menu=self._build_menu(),
@@ -170,7 +172,7 @@ class TrayApp:
 
 
 def main() -> int:
-    _log("=== Local Dictation (Windows) launching ===")
+    _log("=== Voca (Windows) launching ===")
     if not _single_instance():
         _log("another instance is already running — exiting")
         return 0

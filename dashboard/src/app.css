@@ -1,6 +1,6 @@
 /* Dashboard layout + the brand's premium gold treatments, applied to product
  * UI. Tokens + component classes (gold sheen, grain, foil rule, elevation) come
- * from @local-dictation/ui — the same system the website uses — so opening the
+ * from @voca/ui — the same system the website uses — so opening the
  * app feels like stepping inside the site. Restraint over decoration: sheen and
  * grain appear on the one dark hero strip and key accents, not everywhere. */
 

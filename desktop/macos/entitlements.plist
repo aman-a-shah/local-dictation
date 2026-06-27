@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Hardened-runtime entitlements for "Local Dictation".
+  Hardened-runtime entitlements for "Voca".
 
   Applied only when codesigning is enabled in CI (i.e. when the MACOS_CERT_P12
   secret is present). They grant:
@@ -18,7 +18,7 @@
   Usage (in CI, after building the .app):
     codesign --force --options runtime --timestamp \
       --entitlements desktop/macos/entitlements.plist \
-      --sign "Developer ID Application: ..." "dist/Local Dictation.app"
+      --sign "Developer ID Application: ..." "dist/Voca.app"
 -->
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
   "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

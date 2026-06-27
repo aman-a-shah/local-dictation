@@ -1,7 +1,7 @@
 "use client";
 
-import { ButtonLink, useDetectedOS } from "@local-dictation/ui";
-import type { DetectedOS } from "@local-dictation/ui";
+import { ButtonLink, useDetectedOS } from "@voca/ui";
+import type { DetectedOS } from "@voca/ui";
 import { BUILDS, type BuildKey } from "@/lib/releases";
 import styles from "./DownloadChooser.module.css";
 

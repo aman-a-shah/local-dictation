@@ -79,11 +79,19 @@ class FnHotkey:
             print(f"[hotkey] on_release error: {exc}", flush=True)
 
     @staticmethod
-    def _fn_physically_down() -> bool:
-        """Read the live secondary-fn flag straight from the HID layer.
+    def _secondary_fn_active() -> bool:
+        """Read the live secondary-fn modifier from the combined session state.
 
-        Lets the watchdog tell whether a press/release was missed (e.g. the
-        transition arrived while the tap was disabled) and recover the state.
+        CRITICAL: this bit is NOT exclusive to the 🌐 globe key. macOS sets the
+        secondary-fn flag for every key it treats as a function usage — the
+        arrow keys, Page Up/Down, Home/End, forward-delete and the function-row
+        keys all assert it while held. So a True reading means "fn *or some
+        nav/function key* is down", never "the globe key specifically is down".
+
+        Because of that ambiguity we only ever use it in the *safe* direction:
+        to AVOID force-releasing a hold that might still be genuine. We must
+        never start a recording from this flag — that would fire every time the
+        user holds an arrow key (see _resync).
         """
         flags = Quartz.CGEventSourceFlagsState(
             Quartz.kCGEventSourceStateCombinedSessionState
@@ -91,15 +99,23 @@ class FnHotkey:
         return bool(flags & _FN_MASK)
 
     def _resync(self) -> None:
-        """Make logical state match the keyboard's actual fn state.
+        """Recover logical state after the tap was disabled (dropped transitions).
 
-        Called after we re-enable a tap that had been disabled: any transition
-        during the dead window was dropped, so trust the hardware, not our cache.
+        The tap is the ONLY trustworthy source of a fn press: it sees the globe
+        key via keycode-63 flagsChanged events and nothing else. The global
+        secondary-fn flag can't stand in for it because the arrow/nav/function
+        keys assert the same bit (see _secondary_fn_active), so synthesising a
+        press from it starts recordings the user never asked for.
+
+        Therefore resync is strictly one-directional: it may only release a hold
+        we can no longer trust, never begin one. A genuinely missed *press*
+        self-heals — the next real fn transition starts cleanly — whereas a
+        missed *release* would wedge us "holding" forever, so that's the only
+        case worth recovering here. We keep the hold if the modifier still reads
+        active (fn may really be down); the watchdog's max-hold is the backstop
+        for a reading that's stuck on by a held nav key.
         """
-        physically_down = self._fn_physically_down()
-        if physically_down and not self._is_down:
-            self._fire_press()
-        elif not physically_down and self._is_down:
+        if self._is_down and not self._secondary_fn_active():
             self._fire_release()
 
     def _callback(self, proxy, type_, event, refcon):  # noqa: ANN001
@@ -147,11 +163,13 @@ class FnHotkey:
                     self._resync()
                 if self._is_down and (time.monotonic() - self._down_since) > self._max_hold:
                     self._log("[hotkey] watchdog: hold exceeded max — force-finalising")
-                    self._resync()
-                    # If the key really is still down, _resync left it down; only
-                    # force a release when the hardware agrees it's up.
-                    if self._is_down and not self._fn_physically_down():
-                        self._fire_release()
+                    # Past the sane maximum, force the release unconditionally:
+                    # the modifier may be stuck on (a genuinely jammed key, or a
+                    # held nav key asserting secondary-fn), and leaving the
+                    # recorder running while ignoring every further press is the
+                    # worse failure. _resync's conservative gate can't break this
+                    # case, so we don't defer to it here.
+                    self._fire_release()
             except Exception as exc:  # the watchdog must never die
                 print(f"[hotkey] watchdog error: {exc}", flush=True)
 

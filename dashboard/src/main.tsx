@@ -1,8 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "@local-dictation/ui/tokens.css";
-import "@local-dictation/ui/components.css";
-import "@local-dictation/ui/fonts";
+import "@voca/ui/tokens.css";
+import "@voca/ui/components.css";
+import "@voca/ui/fonts";
 import "./app.css";
 import { App } from "./App";
 

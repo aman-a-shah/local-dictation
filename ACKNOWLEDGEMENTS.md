@@ -1,12 +1,12 @@
 # Acknowledgements
 
-Local Dictation stands on a lot of excellent open-source work. This file credits
+Voca stands on a lot of excellent open-source work. This file credits
 the third-party software the app depends on, grouped by role, with each
 component's license. We are grateful to all of these projects and their
 maintainers.
 
-If you redistribute Local Dictation, note that these components are governed by
-**their own licenses** (linked below), not by Local Dictation's MIT license.
+If you redistribute Voca, note that these components are governed by
+**their own licenses** (linked below), not by Voca's MIT license.
 
 ## Transcription engines and models
 
@@ -59,9 +59,9 @@ downloaded once at first run and cached locally on your device.
 ## License notes
 
 **pynput (LGPL-3.0) and pystray (LGPL-3.0 / GPL-2.0).** These two libraries are
-copyleft. Local Dictation uses them as unmodified, dynamically-loaded libraries
+copyleft. Voca uses them as unmodified, dynamically-loaded libraries
 and does not incorporate their source into its own code. Under the LGPL, this
-keeps Local Dictation's own MIT-licensed code separate while honoring the
+keeps Voca's own MIT-licensed code separate while honoring the
 libraries' terms. If you redistribute a build that includes them, you must
 comply with the LGPL/GPL — in particular, preserving their license texts and
 making their source (and any modifications you make to them) available. pystray
@@ -71,8 +71,8 @@ either library.
 **PyInstaller.** PyInstaller is licensed GPL-2.0-or-later **with a special
 runtime/bootloader exception** that explicitly permits using it to package and
 distribute applications under any license of your choosing — including
-proprietary or MIT-licensed apps. Bundling Local Dictation with PyInstaller
-therefore does **not** impose the GPL on Local Dictation itself. PyInstaller's
+proprietary or MIT-licensed apps. Bundling Voca with PyInstaller
+therefore does **not** impose the GPL on Voca itself. PyInstaller's
 own source and license remain available from its project.
 
 **py2app** (used for the macOS app bundle) is MIT-licensed.
@@ -87,4 +87,4 @@ writing and the pinned versions in `requirements-base.txt`,
 `requirements-macos-intel.txt`. Licenses can change between versions; the
 authoritative license for any component is the one shipped with the version you
 are using. If you spot an error or omission here, please open an issue at
-**https://github.com/aman-a-shah/local-transcription/issues**.
+**https://github.com/aman-a-shah/voca/issues**.

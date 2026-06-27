@@ -3,9 +3,9 @@
 Uses platformdirs when available (the packaged apps bundle it) and falls back to
 sensible hand-rolled defaults so the engine still runs from a bare checkout.
 
-- macOS  : ~/Library/Application Support/LocalDictation , ~/Library/Logs
-- Windows: %APPDATA%\\LocalDictation , %LOCALAPPDATA%\\LocalDictation\\Logs
-- Linux  : ~/.local/share/LocalDictation , ~/.local/state/LocalDictation/log
+- macOS  : ~/Library/Application Support/Voca , ~/Library/Logs
+- Windows: %APPDATA%\\Voca , %LOCALAPPDATA%\\Voca\\Logs
+- Linux  : ~/.local/share/Voca , ~/.local/state/Voca/log
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ import os
 import platform
 from pathlib import Path
 
-APP_NAME = "LocalDictation"
+APP_NAME = "Voca"
 
 
 def _fallback_data_dir() -> Path:
@@ -78,10 +78,10 @@ def settings_path() -> Path:
 def log_path() -> Path:
     """Primary engine log file.
 
-    On macOS this stays at the historical ~/Library/Logs/LocalDictation.log path
+    On macOS this stays at the historical ~/Library/Logs/Voca.log path
     so existing docs/troubleshooting keep working; elsewhere it lives under the
     per-OS log dir.
     """
     if platform.system() == "Darwin":
-        return Path.home() / "Library" / "Logs" / "LocalDictation.log"
-    return log_dir() / "LocalDictation.log"
+        return Path.home() / "Library" / "Logs" / "Voca.log"
+    return log_dir() / "Voca.log"

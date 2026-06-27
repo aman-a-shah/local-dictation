@@ -1,6 +1,6 @@
 "use client";
 
-import { useReveal } from "@local-dictation/ui";
+import { useReveal } from "@voca/ui";
 
 /** Wraps content; children with the `ld-reveal` class animate in on scroll. */
 export function Reveal({ children }: { children: React.ReactNode }) {

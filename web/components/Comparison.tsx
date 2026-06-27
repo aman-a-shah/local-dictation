@@ -1,7 +1,7 @@
 import styles from "./Comparison.module.css";
 
 type Cell = boolean | string;
-const COLS = ["Local Dictation", "Cloud dictation", "Built-in OS"];
+const COLS = ["Voca", "Cloud dictation", "Built-in OS"];
 const ROWS: { feature: string; cells: [Cell, Cell, Cell] }[] = [
   { feature: "Audio never leaves your device", cells: [true, false, "varies"] },
   { feature: "Works fully offline", cells: [true, false, "partly"] },

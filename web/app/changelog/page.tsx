@@ -5,7 +5,7 @@ import styles from "./changelog.module.css";
 
 export const metadata: Metadata = {
   title: "Changelog",
-  description: "What's new in Local Dictation.",
+  description: "What's new in Voca.",
 };
 
 export default async function ChangelogPage() {

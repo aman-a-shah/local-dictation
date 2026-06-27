@@ -1,11 +1,11 @@
-# 🎙️ Local Dictation
+# 🎙️ Voca
 
 Push-to-talk voice typing that runs **100% on-device**. Hold a key, speak, and
 release — your words are transcribed locally and pasted at the cursor in
 whatever app you're in. No cloud, no account, no API keys, and **your audio
 never leaves your machine.**
 
-**Now cross-platform.** Local Dictation runs on:
+**Now cross-platform.** Voca runs on:
 
 - **macOS — Apple Silicon** (M1+): transcription on the GPU via **MLX-Whisper**
   (`large-v3-turbo`), typically **10–20× faster than real time**.
@@ -16,7 +16,7 @@ A built-in **dashboard** (recent transcriptions, total words, "time saved,"
 activity streaks) is available from the app — all powered by a local-only
 history that never leaves your device.
 
-**Download:** get the right build for your machine at **https://local-transcription.vercel.app**.
+**Download:** get the right build for your machine at **https://getvoca.vercel.app**.
 
 ### Privacy & legal
 
@@ -49,7 +49,7 @@ The macOS Apple-Silicon experience is documented in detail below.
 ./build_app.sh
 ```
 
-This builds **`dist/Local Dictation.app`** (via py2app). Double-click it: a 🎙️
+This builds **`dist/Voca.app`** (via py2app). Double-click it: a 🎙️
 icon appears in your menu bar and it runs quietly in the background. macOS asks
 for **Microphone** access on first launch — click **Allow**. Then hold `fn`,
 speak, release — done. Click the menu-bar icon for status, the last
@@ -59,7 +59,7 @@ transcription, and **Quit**.
 > *this app* (a plain shell wrapper hands that identity to the shared system
 > Python and the mic prompt never works).
 
-Drag `dist/Local Dictation.app` to **/Applications**, and add it under **System
+Drag `dist/Voca.app` to **/Applications**, and add it under **System
 Settings → General → Login Items** to start it automatically at login.
 
 Menu-bar icon at a glance: ⏳ loading model · 🎙️ ready · 🔴 listening · ✍️
@@ -91,7 +91,7 @@ macOS gates global key capture and synthetic keystrokes behind two permissions:
 
 Grant them to whatever launches the engine:
 
-- **App build** → grant to **Local Dictation** (add it under Accessibility; the
+- **App build** → grant to **Voca** (add it under Accessibility; the
   app shows an alert with instructions if it's missing). The mic prompt appears
   the first time you dictate.
 - **Terminal** → grant to your terminal app (Terminal, iTerm, your IDE).
@@ -214,9 +214,9 @@ asserts the words come back — no microphone or permissions needed.
 - **First run is slow** → it's downloading the model once; subsequent runs are
   fast.
 - **App doesn't seem to do anything** → check the log at
-  `~/Library/Logs/LocalDictation.log`. You want to see
+  `~/Library/Logs/Voca.log`. You want to see
   `fn hotkey installed — ready to dictate`; `BLOCKED` means Accessibility is
-  missing. Raw crashes land in `~/Library/Logs/LocalDictation.out.log`.
+  missing. Raw crashes land in `~/Library/Logs/Voca.out.log`.
 - **Rebuild after code changes** → re-run `./build_app.sh`, then relaunch the app.
 
 ## Requirements

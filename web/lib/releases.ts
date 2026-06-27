@@ -6,7 +6,7 @@
  * newest build. The API routes and the download page both import from here.
  */
 
-export const REPO = process.env.NEXT_PUBLIC_GH_REPO || "aman-a-shah/local-dictation";
+export const REPO = process.env.NEXT_PUBLIC_GH_REPO || "aman-a-shah/voca";
 
 /**
  * Public repo that hosts the published installers and their GitHub Release.
@@ -36,7 +36,7 @@ export const BUILDS: Record<
     sublabel: "M1, M2, M3, M4",
     platform: "mac",
     arch: "arm64",
-    asset: "LocalDictation-mac-arm64.dmg",
+    asset: "Voca-mac-arm64.dmg",
     ext: ".dmg",
   },
   "mac-x64": {
@@ -44,7 +44,7 @@ export const BUILDS: Record<
     sublabel: "2020 & earlier Macs",
     platform: "mac",
     arch: "x64",
-    asset: "LocalDictation-mac-x64.dmg",
+    asset: "Voca-mac-x64.dmg",
     ext: ".dmg",
   },
   "windows-x64": {
@@ -52,7 +52,7 @@ export const BUILDS: Record<
     sublabel: "Windows 10 & 11, 64-bit",
     platform: "windows",
     arch: "x64",
-    asset: "LocalDictationSetup-windows-x64.exe",
+    asset: "VocaSetup-windows-x64.exe",
     ext: ".exe",
   },
 };
